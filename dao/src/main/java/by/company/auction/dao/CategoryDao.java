@@ -10,7 +10,9 @@ public class CategoryDao extends AbstractDao<Category> {
     }
 
     public static CategoryDao getInstance() {
-        if (categoryDaoInstance != null) return categoryDaoInstance;
+        if (categoryDaoInstance != null) {
+            return categoryDaoInstance;
+        }
         categoryDaoInstance = new CategoryDao();
         return categoryDaoInstance;
     }

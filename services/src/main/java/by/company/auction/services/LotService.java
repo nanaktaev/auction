@@ -32,7 +32,7 @@ public class LotService extends AbstractService<Lot, LotDao> {
         return dao.findLotsByUserId(userId);
     }
 
-    public List<Lot> findExpiredLotsByUserId(Integer userId) {
+    List<Lot> findExpiredLotsByUserId(Integer userId) {
         return dao.findExpiredLotsByUserId(userId);
     }
 
@@ -80,7 +80,9 @@ public class LotService extends AbstractService<Lot, LotDao> {
     }
 
     public static LotService getInstance() {
-        if (lotServiceInstance != null) return lotServiceInstance;
+        if (lotServiceInstance != null) {
+            return lotServiceInstance;
+        }
         lotServiceInstance = new LotService();
         lotServiceInstance.setDao(LotDao.getInstance());
         return lotServiceInstance;

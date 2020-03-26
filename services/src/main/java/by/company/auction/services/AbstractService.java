@@ -29,11 +29,11 @@ public abstract class AbstractService<T extends Base, DAO extends AbstractDao<T>
         return dao.update(entity);
     }
 
-    public boolean exists(Integer id) {
+    boolean exists(Integer id) {
         return findById(id) != null;
     }
 
-    public List<T> findByIds(List<Integer> ids) {
+    List<T> findByIds(List<Integer> ids) {
         return dao.findByIds(ids);
     }
 }

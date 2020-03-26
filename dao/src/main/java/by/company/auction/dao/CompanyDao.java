@@ -10,7 +10,9 @@ public class CompanyDao extends AbstractDao<Company> {
     }
 
     public static CompanyDao getInstance() {
-        if (companyDaoInstance != null) return companyDaoInstance;
+        if (companyDaoInstance != null) {
+            return companyDaoInstance;
+        }
         companyDaoInstance = new CompanyDao();
         return companyDaoInstance;
     }

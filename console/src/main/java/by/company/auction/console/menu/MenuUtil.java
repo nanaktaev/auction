@@ -37,7 +37,9 @@ public class MenuUtil {
     static String readStringValue(String valueMessage) {
         System.out.println(valueMessage);
         String value = scanner.nextLine();
-        if ("cancel".equals(value)) throw new IllegalStateException("Действие отменено.");
+        if ("cancel".equals(value)) {
+            throw new IllegalStateException("Действие отменено.");
+        }
         if (StringUtils.isBlank(value)) {
             System.out.println("Ошибка. Введена пустая строка.\nДля отмены ввода введите cancel.\n");
             return readStringValue(valueMessage);

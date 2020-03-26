@@ -14,7 +14,9 @@ public abstract class AbstractDao<T extends Base> {
     private int generateNewId() {
         int maxId = 0;
         for (int id : entitiesMap.keySet()) {
-            if (id > maxId) maxId = id;
+            if (id > maxId) {
+                maxId = id;
+            }
         }
         return maxId + 1;
     }
@@ -25,12 +27,15 @@ public abstract class AbstractDao<T extends Base> {
         return entity;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public T findById(Integer id) {
         return entitiesMap.get(id);
     }
 
     public T update(T entity) {
-        if (entity.getId() == null) throw new IllegalStateException("Объект по данному id не найден.");
+        if (entity.getId() == null) {
+            throw new IllegalStateException("Объект по данному id не найден.");
+        }
         entitiesMap.put(entity.getId(), entity);
         return entity;
     }
@@ -47,6 +52,7 @@ public abstract class AbstractDao<T extends Base> {
         entitiesMap.remove(id);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public List<T> findAll() {
         return new ArrayList<T>(entitiesMap.values());
     }

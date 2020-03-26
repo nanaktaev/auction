@@ -71,8 +71,9 @@ class CommandContainer {
         List<Bid> bids = bidService.findBidsByLotId(lotId);
 
         System.out.println("Ставки на лоте №" + lotId + ":");
-        if (bids.isEmpty()) System.out.println("Пока что на этом лоте нет ставок.");
-        else {
+        if (bids.isEmpty()) {
+            System.out.println("Пока что на этом лоте нет ставок.");
+        } else {
             Collections.reverse(bids);
             for (Bid bid : bids) {
                 System.out.println(bid);
@@ -94,8 +95,9 @@ class CommandContainer {
 
         List<Lot> lots = lotService.findLotsByTownId(townId);
 
-        if (lots.isEmpty()) System.out.println("Пока что в этой категории нет лотов.");
-        else {
+        if (lots.isEmpty()) {
+            System.out.println("Пока что в этой категории нет лотов.");
+        } else {
             for (Lot lot : lots) {
                 System.out.println(lot);
             }
@@ -116,8 +118,9 @@ class CommandContainer {
 
         List<Lot> lots = lotService.findLotsByCategoryId(categoryId);
 
-        if (lots.isEmpty()) System.out.println("Пока что в этой категории нет лотов.");
-        else {
+        if (lots.isEmpty()) {
+            System.out.println("Пока что в этой категории нет лотов.");
+        } else {
             for (Lot lot : lots) {
                 System.out.println(lot);
             }
@@ -324,8 +327,9 @@ class CommandContainer {
         System.out.println("Ваши сообщения:");
         List<Message> userMessages = messageService.findMessagesByUserId(userId);
 
-        if (userMessages.isEmpty()) System.out.println("У вас пока что нет сообщений.");
-        else {
+        if (userMessages.isEmpty()) {
+            System.out.println("У вас пока что нет сообщений.");
+        } else {
             Collections.reverse(userMessages);
             for (Message message : userMessages) {
                 System.out.println(message);

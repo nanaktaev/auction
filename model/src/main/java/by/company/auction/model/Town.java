@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Town extends Base{
+public class Town extends Base {
     private String name;
 
     private List<Integer> lotIds;

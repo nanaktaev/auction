@@ -1,6 +1,6 @@
 package by.company.auction.model;
 
-public class Company extends Base{
+public class Company extends Base {
     private String name;
 
     private Integer vendorId;

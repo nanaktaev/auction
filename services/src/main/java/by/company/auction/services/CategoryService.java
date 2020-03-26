@@ -11,7 +11,9 @@ public class CategoryService extends AbstractService<Category, CategoryDao> {
     }
 
     public static CategoryService getInstance() {
-        if (categoryServiceInstance != null) return categoryServiceInstance;
+        if (categoryServiceInstance != null) {
+            return categoryServiceInstance;
+        }
         categoryServiceInstance = new CategoryService();
         categoryServiceInstance.setDao(CategoryDao.getInstance());
         return categoryServiceInstance;

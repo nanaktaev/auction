@@ -11,7 +11,9 @@ public class CompanyService extends AbstractService<Company, CompanyDao> {
     }
 
     public static CompanyService getInstance() {
-        if (companyServiceInstance != null) return companyServiceInstance;
+        if (companyServiceInstance != null) {
+            return companyServiceInstance;
+        }
         companyServiceInstance = new CompanyService();
         companyServiceInstance.setDao(CompanyDao.getInstance());
         return companyServiceInstance;

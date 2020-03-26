@@ -18,7 +18,7 @@ public class MessageService extends AbstractService<Message, MessageDao> {
     private MessageService() {
     }
 
-    public List<Message> findOutcomeMessagesByUserId(Integer userId) {
+    private List<Message> findOutcomeMessagesByUserId(Integer userId) {
         return dao.findOutcomeMessagesByUserId(userId);
     }
 
@@ -26,15 +26,19 @@ public class MessageService extends AbstractService<Message, MessageDao> {
         return dao.findMessagesByUserId(userId);
     }
 
-    public void createOutcomeMessage(LocalDateTime time, Integer userId, Integer lotId, boolean userLeading) {
+    private void createOutcomeMessage(LocalDateTime time, Integer userId, Integer lotId, boolean userLeading) {
         Message message = new Message(time, MessageType.OUTCOME, userId, lotId);
-        if (userLeading) message.setText("Вы выиграли торги по лоту №" + lotId + "!");
-        else message.setText("Вы проиграли торги по лоту №" + lotId + ".");
+        if (userLeading) {
+            message.setText("Вы выиграли торги по лоту №" + lotId + "!");
+        } else {
+            message.setText("Вы проиграли торги по лоту №" + lotId + ".");
+        }
         create(message);
     }
 
-    public void createWarningMessage(Integer userId, Bid bid) {
-        create(new Message("Ваша ставка по лоту №" + bid.getLotId() + " была перебита!", bid.getTime(), MessageType.WARNING, userId, bid.getLotId()));
+    void createWarningMessage(Integer userId, Bid bid) {
+        create(new Message("Ваша ставка по лоту №" + bid.getLotId() + " была перебита!",
+                bid.getTime(), MessageType.WARNING, userId, bid.getLotId()));
     }
 
     public void prepareUserMessages(Integer userId) {
@@ -53,16 +57,19 @@ public class MessageService extends AbstractService<Message, MessageDao> {
 
         if (!expiredUserLots.isEmpty()) {
             for (Lot lot : expiredUserLots) {
-                if (BidService.getInstance().isUserLeading(lot, userId))
+                if (BidService.getInstance().isUserLeading(lot, userId)) {
                     createOutcomeMessage(lot.getCloses(), userId, lot.getId(), true);
-                else
+                } else {
                     createOutcomeMessage(lot.getCloses(), userId, lot.getId(), false);
+                }
             }
         }
     }
 
     public static MessageService getInstance() {
-        if (messageServiceInstance != null) return messageServiceInstance;
+        if (messageServiceInstance != null) {
+            return messageServiceInstance;
+        }
         messageServiceInstance = new MessageService();
         messageServiceInstance.setDao(MessageDao.getInstance());
         return messageServiceInstance;

@@ -50,20 +50,24 @@ class SampleEntitiesCreator {
         );
 
 
-        for (User user : sampleUsers)
+        for (User user : sampleUsers) {
             UserService.getInstance().create(user);
+        }
 
-        for (Lot lot : sampleLots)
+        for (Lot lot : sampleLots) {
             LotService.getInstance().create(lot);
+        }
 
-        for (Town town : sampleTowns)
+        for (Town town : sampleTowns) {
             TownService.getInstance().create(town);
+        }
 
-        for (Category category : sampleCategories)
+        for (Category category : sampleCategories) {
             CategoryService.getInstance().create(category);
+        }
 
-        for (Company company : sampleCompanies)
+        for (Company company : sampleCompanies) {
             CompanyService.getInstance().create(company);
-
+        }
     }
 }

@@ -28,6 +28,7 @@ public class Menu {
         this.header = header;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public List<Command> getCommands() {
         return commands;
     }

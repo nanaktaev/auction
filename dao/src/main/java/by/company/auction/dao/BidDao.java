@@ -10,7 +10,9 @@ public class BidDao extends AbstractDao<Bid> {
     }
 
     public static BidDao getInstance() {
-        if (bidDaoInstance != null) return bidDaoInstance;
+        if (bidDaoInstance != null) {
+            return bidDaoInstance;
+        }
         bidDaoInstance = new BidDao();
         return bidDaoInstance;
     }
