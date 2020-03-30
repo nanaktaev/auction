@@ -1,9 +1,9 @@
 package by.company.auction.console.menu;
 
-import static by.company.auction.console.menu.CommandContainer.*;
+import static by.company.auction.console.menu.CommandConfig.*;
 import static by.company.auction.console.menu.HeaderContainer.WELCOME_MENU_HEADER;
 
-public class MenuContainer {
+public class MenuConfig {
 
     public static final Menu WELCOME_MENU = new Menu(
             WELCOME_MENU_HEADER,
@@ -25,6 +25,9 @@ public class MenuContainer {
             VIEW_BIDS_COMMAND,
             EDIT_LOT_COMMAND,
             SET_ROLE_COMMAND,
+            CREATE_TOWN_COMMAND,
+            CREATE_CATEGORY_COMMAND,
+            CREATE_COMPANY_COMMAND,
             LOGOUT_COMMAND);
     static final Menu MAIN_MENU_VENDOR = new Menu("\n*** Главное меню продавца ***",
             VIEW_ALL_LOTS_COMMAND,

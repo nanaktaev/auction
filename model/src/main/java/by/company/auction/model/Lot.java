@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class Lot extends Base {
+public class Lot extends BaseEntity {
     private String title;
     private String description;
     private BigDecimal price;
@@ -30,6 +30,9 @@ public class Lot extends Base {
 
     public boolean isBidValueEnough(BigDecimal value) {
         return value.compareTo(price.add(step)) >= 0;
+    }
+
+    public Lot() {
     }
 
     public Lot(String title, String description, BigDecimal price, BigDecimal priceStart, BigDecimal step, LocalDateTime opened, LocalDateTime closes, Integer categoryId, Integer vendorId, Integer townId, List<Integer> bidIds, List<Integer> userIds) {

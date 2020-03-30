@@ -1,6 +1,6 @@
 package by.company.auction.model;
 
-public class Base {
+public class BaseEntity {
     private Integer id;
 
     public Integer getId() {

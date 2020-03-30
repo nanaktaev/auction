@@ -1,4 +1,4 @@
-package validators;
+package by.company.auction.validators;
 
 import by.company.auction.model.Bid;
 import by.company.auction.model.Lot;

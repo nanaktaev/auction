@@ -4,12 +4,12 @@ import by.company.auction.dao.BidDao;
 import by.company.auction.model.Bid;
 import by.company.auction.model.Lot;
 import by.company.auction.model.User;
-import validators.BidValidator;
+import by.company.auction.validators.BidValidator;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static by.company.auction.secuirty.AuthenticatonContainer.authentication;
+import static by.company.auction.secuirty.AuthenticatonConfig.authentication;
 
 public class BidService extends AbstractService<Bid, BidDao> {
 

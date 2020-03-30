@@ -1,15 +1,20 @@
 package by.company.auction.dao;
 
-import by.company.auction.model.Base;
+import by.company.auction.model.BaseEntity;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractDao<T extends Base> {
+public abstract class AbstractDao<T extends BaseEntity> {
 
-    private Map<Integer, T> entitiesMap = new HashMap<>();
+    private final Map<Integer, T> entitiesMap;
+    private final Class<T> tClass;
+
+    AbstractDao(Class<T> tClass) {
+        this.entitiesMap = FileAccessor.getEntitiesMap(tClass);
+        this.tClass = tClass;
+    }
 
     private int generateNewId() {
         int maxId = 0;
@@ -24,6 +29,8 @@ public abstract class AbstractDao<T extends Base> {
     public T create(T entity) {
         entity.setId(generateNewId());
         entitiesMap.put(entity.getId(), entity);
+
+        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
         return entity;
     }
 
@@ -37,6 +44,8 @@ public abstract class AbstractDao<T extends Base> {
             throw new IllegalStateException("Объект по данному id не найден.");
         }
         entitiesMap.put(entity.getId(), entity);
+
+        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
         return entity;
     }
 
@@ -50,6 +59,7 @@ public abstract class AbstractDao<T extends Base> {
 
     public void delete(Integer id) {
         entitiesMap.remove(id);
+        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
     }
 
     @SuppressWarnings("WeakerAccess")

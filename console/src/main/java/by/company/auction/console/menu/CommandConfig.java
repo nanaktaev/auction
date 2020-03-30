@@ -2,17 +2,18 @@ package by.company.auction.console.menu;
 
 import by.company.auction.model.*;
 import by.company.auction.services.*;
-import validators.LotValidator;
+import by.company.auction.validators.LotValidator;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import static by.company.auction.console.menu.MenuContainer.*;
-import static by.company.auction.secuirty.AuthenticatonContainer.authentication;
+import static by.company.auction.console.menu.MenuConfig.*;
+import static by.company.auction.secuirty.AuthenticatonConfig.authentication;
 
-class CommandContainer {
+class CommandConfig {
 
     private static final UserService userService = UserService.getInstance();
     private static final CategoryService categoryService = CategoryService.getInstance();
@@ -45,6 +46,7 @@ class CommandContainer {
 
     static final Command QUIT_COMMAND = new Command("quit", "завершить работу.", () -> {
         System.out.println("Работа завершена.");
+        System.exit(0);
         return null;
     });
 
@@ -56,8 +58,14 @@ class CommandContainer {
     });
 
     static final Command VIEW_ALL_LOTS_COMMAND = new Command("all", "посмотреть все лоты.", () -> {
+        List<Lot> lots = lotService.findAll();
+        if (lots.isEmpty()) {
+            System.out.println("Пока что аукцион пуст.");
+            MenuUtil.readCommand(MenuUtil.getMainMenuByRole(authentication.getUserRole()));
+        }
+
         System.out.println("Все лоты:");
-        for (Lot lot : lotService.findAll()) {
+        for (Lot lot : lots) {
             System.out.println(lot);
         }
         MenuUtil.readCommand(MenuUtil.getMainMenuByRole(authentication.getUserRole()));
@@ -86,8 +94,15 @@ class CommandContainer {
 
     static final Command VIEW_LOTS_BY_TOWN = new Command("town", "посмотреть лоты по городам.", () -> {
 
+        List<Town> towns = townService.findAll();
+
+        if (towns.isEmpty()) {
+            System.out.println("Пока не было зарегистрировано ни одного города.");
+            MenuUtil.readCommand(MenuUtil.getMainMenuByRole(authentication.getUserRole()));
+        }
+
         System.out.println("Доступные города:");
-        for (Town town : townService.findAll()) {
+        for (Town town : towns) {
             System.out.println(town);
         }
 
@@ -96,7 +111,7 @@ class CommandContainer {
         List<Lot> lots = lotService.findLotsByTownId(townId);
 
         if (lots.isEmpty()) {
-            System.out.println("Пока что в этой категории нет лотов.");
+            System.out.println("Пока что в этом городе нет лотов.");
         } else {
             for (Lot lot : lots) {
                 System.out.println(lot);
@@ -109,8 +124,15 @@ class CommandContainer {
 
     static final Command VIEW_LOTS_BY_CATEGORY = new Command("cat", "посмотреть лоты по категориям.", () -> {
 
+        List<Category> categories = categoryService.findAll();
+
+        if (categories.isEmpty()) {
+            System.out.println("Пока не было зарегистрировано ни одной категории.");
+            MenuUtil.readCommand(MenuUtil.getMainMenuByRole(authentication.getUserRole()));
+        }
+
         System.out.println("Доступные категории:");
-        for (Category category : categoryService.findAll()) {
+        for (Category category : categories) {
             System.out.println(category);
         }
 
@@ -133,13 +155,21 @@ class CommandContainer {
     static final Command SET_ROLE_COMMAND = new Command("role", "управление ролями пользователей.", () -> {
 
         Integer userId = Integer.parseInt(MenuUtil.readNumericValue("Введите id пользователя:"));
-
-        System.out.println(userService.findById(userId) + "\n");
+        User user = userService.findById(userId);
+        if (user == null) {
+            System.out.println("По данному id пользователь не найден.");
+            MenuUtil.readCommand(MAIN_MENU_ADMIN);
+        }
+        System.out.println(user + "\n");
 
         String roleString = MenuUtil.readRoleValue("Введите новую роль пользователя (USER, VENDOR, ADMIN):");
 
         Integer companyId = null;
         if (roleString.equals("VENDOR")) {
+            if (companyService.findAll().isEmpty()) {
+                System.out.println("Прежде чем назначать роль VENDOR необходимо зарегистрировать хотя бы одну компанию.");
+                MenuUtil.readCommand(MAIN_MENU_ADMIN);
+            }
             System.out.println("Доступные компании:");
             for (Company company : companyService.findAll()) {
                 System.out.println(company);
@@ -147,7 +177,7 @@ class CommandContainer {
             companyId = Integer.parseInt(MenuUtil.readNumericValue("\nВведите id компании продавца:"));
         }
 
-        User user = userService.updateUserRole(userId, roleString, companyId);
+        user = userService.updateUserRole(userId, roleString, companyId);
         System.out.println("Роль пользователя изменена:\n" + user);
 
         MenuUtil.readCommand(MAIN_MENU_ADMIN);
@@ -155,6 +185,12 @@ class CommandContainer {
     });
 
     static final Command CREATE_LOT_COMMAND = new Command("clot", "создать новый лот.", () -> {
+
+        if (categoryService.findAll().isEmpty() || townService.findAll().isEmpty()) {
+            System.out.println("Ошибка. Администратору необходимо добавить хотя бы одну категорию и один город," +
+                    " прежде чем появится возможность добавлять лоты.");
+            MenuUtil.readCommand(MAIN_MENU_VENDOR);
+        }
 
         String name = MenuUtil.readStringValue("Введите название лота:");
 
@@ -183,6 +219,45 @@ class CommandContainer {
         return null;
     });
 
+    static final Command CREATE_TOWN_COMMAND = new Command("ctown", "добавить город.", () -> {
+
+        String name = StringUtils.capitalize(MenuUtil.readStringValue("Введите название города:").toLowerCase());
+        if (!(townService.findByName(name) == null)) {
+            System.out.println("Данный город уже был добавлен.");
+            MenuUtil.readCommand(MAIN_MENU_ADMIN);
+        }
+        townService.create(new Town(name));
+        System.out.println("Город добавлен.");
+        MenuUtil.readCommand(MAIN_MENU_ADMIN);
+        return null;
+    });
+
+    static final Command CREATE_CATEGORY_COMMAND = new Command("ccat", "добавить категорию.", () -> {
+
+        String name = StringUtils.capitalize(MenuUtil.readStringValue("Введите название категории:").toLowerCase());
+        if (!(categoryService.findByName(name) == null)) {
+            System.out.println("Данная категория уже существует.");
+            MenuUtil.readCommand(MAIN_MENU_ADMIN);
+        }
+        categoryService.create(new Category(name));
+        System.out.println("Категория добавлена.");
+        MenuUtil.readCommand(MAIN_MENU_ADMIN);
+        return null;
+    });
+
+    static final Command CREATE_COMPANY_COMMAND = new Command("ccom", "добавить компанию.", () -> {
+
+        String name = MenuUtil.readStringValue("Введите название компании:");
+        if (!(companyService.findByName(name) == null)) {
+            System.out.println("Данная компания уже зарегистрирована.");
+            MenuUtil.readCommand(MAIN_MENU_ADMIN);
+        }
+        companyService.create(new Company(name));
+        System.out.println("Компания добавлена.");
+        MenuUtil.readCommand(MAIN_MENU_ADMIN);
+        return null;
+    });
+
     static final Command EDIT_LOT_COMMAND = new Command("elot", "редактировать лот.", () -> {
 
         Role role = authentication.getUserRole();
@@ -190,6 +265,11 @@ class CommandContainer {
 
         Integer lotId = Integer.parseInt(MenuUtil.readNumericValue("Введите id лота:"));
         editedLot = lotService.findById(lotId);
+
+        if (lotService.findById(lotId) == null) {
+            System.out.println("По данному id лот не найден.");
+            MenuUtil.readCommand(MenuUtil.getMainMenuByRole(role));
+        }
 
         if (role.equals(Role.VENDOR)) {
             LotValidator.validateOwnership(editedLot, userId);

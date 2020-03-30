@@ -5,13 +5,13 @@ import by.company.auction.model.Category;
 import by.company.auction.model.Lot;
 import by.company.auction.model.Town;
 import by.company.auction.model.User;
-import validators.LotValidator;
+import by.company.auction.validators.LotValidator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static by.company.auction.secuirty.AuthenticatonContainer.authentication;
+import static by.company.auction.secuirty.AuthenticatonConfig.authentication;
 
 public class LotService extends AbstractService<Lot, LotDao> {
 
@@ -39,7 +39,7 @@ public class LotService extends AbstractService<Lot, LotDao> {
     public Lot createLot(Lot lot) {
         Integer userId = authentication.getUserId();
 
-        LotValidator.validateCreation(lot);
+        LotValidator.validate(lot);
 
         lot.setVendorId(userId);
         lot.setOpened(LocalDateTime.now());

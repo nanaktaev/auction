@@ -11,6 +11,7 @@ public class MessageDao extends AbstractDao<Message> {
     private static MessageDao messageDaoInstance;
 
     private MessageDao() {
+        super(Message.class);
     }
 
     public List<Message> findMessagesByUserId(Integer userId) {

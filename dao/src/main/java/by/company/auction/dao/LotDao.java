@@ -10,6 +10,7 @@ public class LotDao extends AbstractDao<Lot> {
     private static LotDao lotDaoInstance;
 
     private LotDao() {
+        super(Lot.class);
     }
 
     public List<Lot> findLotsByTownId(Integer townId) {

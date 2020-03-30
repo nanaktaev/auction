@@ -3,7 +3,7 @@ package by.company.auction.model;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class Message extends Base {
+public class Message extends BaseEntity {
     private String text;
     private LocalDateTime time;
     private MessageType type;
@@ -14,6 +14,9 @@ public class Message extends Base {
     @Override
     public String toString() {
         return time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) + " - " + text;
+    }
+
+    public Message() {
     }
 
     public Message(String text, LocalDateTime time, MessageType type, Integer userId, Integer lotId) {

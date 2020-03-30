@@ -1,6 +1,6 @@
 package by.company.auction.model;
 
-public class Company extends Base {
+public class Company extends BaseEntity {
     private String name;
 
     private Integer vendorId;
@@ -8,6 +8,13 @@ public class Company extends Base {
     @Override
     public String toString() {
         return super.toString() + ". " + name;
+    }
+
+    public Company() {
+    }
+
+    public Company(String name) {
+        this.name = name;
     }
 
     public Company(String name, Integer vendorId) {

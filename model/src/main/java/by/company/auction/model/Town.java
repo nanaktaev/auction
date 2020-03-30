@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Town extends Base {
+public class Town extends BaseEntity {
     private String name;
 
     private List<Integer> lotIds;
@@ -12,6 +12,9 @@ public class Town extends Base {
     @Override
     public String toString() {
         return super.toString() + ". " + name;
+    }
+
+    public Town() {
     }
 
     public Town(String name, Integer... lotIds) {

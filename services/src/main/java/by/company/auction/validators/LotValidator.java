@@ -1,4 +1,4 @@
-package validators;
+package by.company.auction.validators;
 
 import by.company.auction.model.Lot;
 import by.company.auction.services.CategoryService;
@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 public class LotValidator {
 
-    public static void validateCreation(Lot lot) {
+    public static void validate(Lot lot) {
         validateStartPrice(lot);
         validateStep(lot);
         validateClosingDate(lot);
@@ -30,8 +30,8 @@ public class LotValidator {
     }
 
     public static void validateClosingDate(Lot lot) {
-        if (!lot.getCloses().isAfter(LocalDateTime.now().plusHours(1))) {
-            throw new IllegalStateException("Ошибка. Торги не могут длиться меньше часа (или оканчиваться в прошлом).");
+        if (!lot.getCloses().isAfter(LocalDateTime.now().plusMinutes(3))) {
+            throw new IllegalStateException("Ошибка. Торги не могут длиться меньше 3 минут (или оканчиваться в прошлом).");
         }
     }
 

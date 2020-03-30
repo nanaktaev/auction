@@ -10,6 +10,10 @@ public class CategoryService extends AbstractService<Category, CategoryDao> {
     private CategoryService() {
     }
 
+    public Category findByName(String name) {
+        return dao.findByName(name);
+    }
+
     public static CategoryService getInstance() {
         if (categoryServiceInstance != null) {
             return categoryServiceInstance;
