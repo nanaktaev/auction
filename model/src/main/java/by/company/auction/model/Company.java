@@ -1,9 +1,33 @@
 package by.company.auction.model;
 
+import by.company.auction.annotaitions.TableName;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+@TableName("Companies")
 public class Company extends BaseEntity {
     private String name;
 
-    private Integer vendorId;
+    @Override
+    public Company buildFromResultSet(ResultSet resultSet) {
+        try {
+            int id = resultSet.getInt(1);
+            String name = resultSet.getString(2);
+
+            return new Company(id, name);
+
+        } catch (
+                SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+        return null;
+    }
+
+    public Company(Integer id, String name) {
+        this.setId(id);
+        this.name = name;
+    }
 
     @Override
     public String toString() {
@@ -17,11 +41,6 @@ public class Company extends BaseEntity {
         this.name = name;
     }
 
-    public Company(String name, Integer vendorId) {
-        this.name = name;
-        this.vendorId = vendorId;
-    }
-
     public String getName() {
         return name;
     }
@@ -30,11 +49,4 @@ public class Company extends BaseEntity {
         this.name = name;
     }
 
-    public Integer getVendorId() {
-        return vendorId;
-    }
-
-    public void setVendorId(Integer vendorId) {
-        this.vendorId = vendorId;
-    }
 }

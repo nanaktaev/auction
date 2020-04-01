@@ -356,7 +356,7 @@ class CommandConfig {
 
     static final Command DELETE_LOT_COMMAND = new Command("del", "удалить лот.", () -> {
 
-        lotService.deleteLot(editedLot);
+        lotService.deleteLot(editedLot.getId());
         System.out.println("Лот удален.");
 
         Role role = authentication.getUserRole();

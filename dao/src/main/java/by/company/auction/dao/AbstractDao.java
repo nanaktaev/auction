@@ -1,51 +1,68 @@
 package by.company.auction.dao;
 
+import by.company.auction.annotaitions.TableName;
 import by.company.auction.model.BaseEntity;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractDao<T extends BaseEntity> {
 
-    private final Map<Integer, T> entitiesMap;
+    private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
+
     private final Class<T> tClass;
 
     AbstractDao(Class<T> tClass) {
-        this.entitiesMap = FileAccessor.getEntitiesMap(tClass);
         this.tClass = tClass;
     }
 
-    private int generateNewId() {
-        int maxId = 0;
-        for (int id : entitiesMap.keySet()) {
-            if (id > maxId) {
-                maxId = id;
-            }
-        }
-        return maxId + 1;
-    }
-
     public T create(T entity) {
-        entity.setId(generateNewId());
-        entitiesMap.put(entity.getId(), entity);
-
-        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
+//        entity.setId(generateNewId());
+//        entitiesMap.put(entity.getId(), entity);
+//
+//        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
         return entity;
     }
 
     @SuppressWarnings("WeakerAccess")
     public T findById(Integer id) {
-        return entitiesMap.get(id);
+
+        T entity = null;
+        String tableName = tClass.getAnnotation(TableName.class).value();
+
+        try (Connection connection = connectionProvider.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement("select * from ? where id = ?")) {
+
+            preparedStatement.setString(1, tableName);
+            preparedStatement.setInt(2, id);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    entity = ((T) tClass.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet));
+                }
+
+            } catch (Exception exception) {
+                System.out.println(exception.getMessage());
+            }
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+
+        return entity;
     }
 
     public T update(T entity) {
-        if (entity.getId() == null) {
-            throw new IllegalStateException("Объект по данному id не найден.");
-        }
-        entitiesMap.put(entity.getId(), entity);
-
-        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
+//        if (entity.getId() == null) {
+//            throw new IllegalStateException("Объект по данному id не найден.");
+//        }
+//        entitiesMap.put(entity.getId(), entity);
+//
+//        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
         return entity;
     }
 
@@ -58,13 +75,35 @@ public abstract class AbstractDao<T extends BaseEntity> {
     }
 
     public void delete(Integer id) {
-        entitiesMap.remove(id);
-        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
+//        entitiesMap.remove(id);
+//        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
     }
 
     @SuppressWarnings("WeakerAccess")
     public List<T> findAll() {
-        return new ArrayList<T>(entitiesMap.values());
+
+        List<T> entities = new ArrayList<>();
+        String tableName = tClass.getAnnotation(TableName.class).value();
+
+        try (Connection connection = connectionProvider.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement("select * from ?")) {
+
+            preparedStatement.setString(1, tableName);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    entities.add((T) tClass.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet));
+                }
+
+            } catch (Exception exception) {
+                System.out.println(exception.getMessage());
+            }
+        } catch (SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+
+        return entities;
     }
 
 }

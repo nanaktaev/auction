@@ -44,39 +44,13 @@ public class LotService extends AbstractService<Lot, LotDao> {
         lot.setVendorId(userId);
         lot.setOpened(LocalDateTime.now());
         lot.setPrice(lot.getPriceStart());
-        lot.setUserIds(new ArrayList<>());
-        lot.setBidIds(new ArrayList<>());
         create(lot);
 
         return lot;
     }
 
-    public void deleteLot(Lot lot) {
-
-        CategoryService categoryService = CategoryService.getInstance();
-        TownService townService = TownService.getInstance();
-        UserService userService = UserService.getInstance();
-
-        List<Integer> bidIds = new ArrayList<>(lot.getBidIds());
-        for (Integer bidId : bidIds) {
-            BidService.getInstance().deleteBid(bidId);
-        }
-
-        for (Integer userId : lot.getUserIds()) {
-            User user = userService.findById(userId);
-            user.getLotIds().removeIf(lot.getId()::equals);
-            userService.update(user);
-        }
-
-        Category category = categoryService.findById(lot.getCategoryId());
-        category.getLotIds().removeIf(lot.getId()::equals);
-        categoryService.update(category);
-
-        Town town = townService.findById(lot.getTownId());
-        town.getLotIds().removeIf(lot.getId()::equals);
-        townService.update(town);
-
-        dao.delete(lot.getId());
+    public void deleteLot(Integer lotId) {
+        dao.deleteLotById(lotId);
     }
 
     public static LotService getInstance() {

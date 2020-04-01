@@ -5,8 +5,6 @@ import by.company.auction.model.Role;
 import by.company.auction.model.User;
 import by.company.auction.validators.UserValidator;
 
-import java.util.ArrayList;
-
 public class UserService extends AbstractService<User, UserDao> {
 
     private static UserService userServiceInstance;
@@ -42,9 +40,6 @@ public class UserService extends AbstractService<User, UserDao> {
         } else {
             user.setRole(Role.USER);
         }
-        user.setBidIds(new ArrayList<>());
-        user.setMessageIds(new ArrayList<>());
-        user.setLotIds(new ArrayList<>());
 
         return create(user);
     }

@@ -1,13 +1,28 @@
 package by.company.auction.model;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import by.company.auction.annotaitions.TableName;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+@TableName("Categories")
 public class Category extends BaseEntity {
     private String name;
 
-    private List<Integer> lotIds;
+    @Override
+    public Category buildFromResultSet(ResultSet resultSet) {
+        try {
+            int id = resultSet.getInt(1);
+            String name = resultSet.getString(2);
+
+            return new Category(id, name);
+
+        } catch (
+                SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+        return null;
+    }
 
     @Override
     public String toString() {
@@ -17,9 +32,13 @@ public class Category extends BaseEntity {
     public Category() {
     }
 
-    public Category(String name, Integer... lotIds) {
+    public Category(Integer id, String name) {
+        this.setId(id);
         this.name = name;
-        this.lotIds = new LinkedList<>(Arrays.asList(lotIds));
+    }
+
+    public Category(String name) {
+        this.name = name;
     }
 
     public String getName() {
@@ -30,11 +49,4 @@ public class Category extends BaseEntity {
         this.name = name;
     }
 
-    public List<Integer> getLotIds() {
-        return lotIds;
-    }
-
-    public void setLotIds(List<Integer> lotIds) {
-        this.lotIds = lotIds;
-    }
 }

@@ -92,22 +92,6 @@ public class BidService extends AbstractService<Bid, BidDao> {
         return findByIds(LotService.getInstance().findById(lotId).getBidIds());
     }
 
-    void deleteBid(Integer bidId) {
-        LotService lotService = LotService.getInstance();
-        UserService userService = UserService.getInstance();
-
-        Bid bid = findById(bidId);
-        User user = userService.findById(bid.getUserId());
-        Lot lot = lotService.findById(bid.getLotId());
-
-        user.getBidIds().removeIf(bidId::equals);
-        lot.getBidIds().removeIf(bidId::equals);
-
-        lotService.update(lot);
-        userService.update(user);
-        dao.delete(bid.getId());
-    }
-
     public static BidService getInstance() {
         if (bidServiceInstance != null) {
             return bidServiceInstance;

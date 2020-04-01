@@ -1,7 +1,14 @@
 package by.company.auction.model;
 
-public class BaseEntity {
+import java.sql.ResultSet;
+
+public abstract class BaseEntity {
     private Integer id;
+
+    public abstract BaseEntity buildFromResultSet(ResultSet resultSet);
+
+    public BaseEntity() {
+    }
 
     public Integer getId() {
         return id;

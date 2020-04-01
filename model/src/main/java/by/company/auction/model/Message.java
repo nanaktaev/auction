@@ -1,8 +1,14 @@
 package by.company.auction.model;
 
+import by.company.auction.annotaitions.TableName;
+
+import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@TableName("Messages")
 public class Message extends BaseEntity {
     private String text;
     private LocalDateTime time;
@@ -10,6 +16,34 @@ public class Message extends BaseEntity {
 
     private Integer userId;
     private Integer lotId;
+
+    public Message(Integer id, String text, LocalDateTime time, MessageType type, Integer userId, Integer lotId) {
+        this.setId(id);
+        this.text = text;
+        this.time = time;
+        this.type = type;
+        this.userId = userId;
+        this.lotId = lotId;
+    }
+
+    @Override
+    public Message buildFromResultSet(ResultSet resultSet) {
+        try {
+            int id = resultSet.getInt(1);
+            String text = resultSet.getString(2);
+            LocalDateTime time = resultSet.getTimestamp(3).toLocalDateTime();
+            MessageType type = MessageType.valueOf(resultSet.getString(4));
+            int lotId = resultSet.getInt(5);
+            int userId = resultSet.getInt(6);
+
+            return new Message(id, text, time, type, userId, lotId);
+
+        } catch (
+                SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+        return null;
+    }
 
     @Override
     public String toString() {

@@ -1,13 +1,36 @@
 package by.company.auction.model;
 
+import by.company.auction.annotaitions.TableName;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+@TableName("Towns")
 public class Town extends BaseEntity {
     private String name;
 
-    private List<Integer> lotIds;
+    @Override
+    public Town buildFromResultSet(ResultSet resultSet) {
+        try {
+            int id = resultSet.getInt(1);
+            String name = resultSet.getString(2);
+
+            return new Town(id, name);
+
+        } catch (
+                SQLException sqlException) {
+            System.out.println(sqlException.getMessage());
+        }
+        return null;
+    }
+
+    public Town(Integer id, String name) {
+        this.setId(id);
+        this.name = name;
+    }
 
     @Override
     public String toString() {
@@ -19,7 +42,6 @@ public class Town extends BaseEntity {
 
     public Town(String name, Integer... lotIds) {
         this.name = name;
-        this.lotIds = new LinkedList<>(Arrays.asList(lotIds));
     }
 
     public String getName() {
@@ -30,11 +52,4 @@ public class Town extends BaseEntity {
         this.name = name;
     }
 
-    public List<Integer> getLotIds() {
-        return lotIds;
-    }
-
-    public void setLotIds(List<Integer> lotIds) {
-        this.lotIds = lotIds;
-    }
 }
