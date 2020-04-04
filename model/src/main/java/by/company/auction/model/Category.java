@@ -7,38 +7,30 @@ import java.sql.SQLException;
 
 @TableName("Categories")
 public class Category extends BaseEntity {
+
     private String name;
 
     @Override
-    public Category buildFromResultSet(ResultSet resultSet) {
-        try {
-            int id = resultSet.getInt(1);
-            String name = resultSet.getString(2);
+    public Category buildFromResultSet(ResultSet resultSet) throws SQLException {
 
-            return new Category(id, name);
+        Category category = new Category();
+        category.setId(resultSet.getInt(1));
+        category.setName(resultSet.getString(2));
 
-        } catch (
-                SQLException sqlException) {
-            System.out.println(sqlException.getMessage());
-        }
-        return null;
+        return category;
     }
 
     @Override
     public String toString() {
-        return super.toString() + ". " + name;
+        return super.getId() + ". " + name;
     }
 
-    public Category() {
+    public Integer getId() {
+        return super.getId();
     }
 
-    public Category(Integer id, String name) {
-        this.setId(id);
-        this.name = name;
-    }
-
-    public Category(String name) {
-        this.name = name;
+    public void setId(Integer id) {
+        super.setId(id);
     }
 
     public String getName() {

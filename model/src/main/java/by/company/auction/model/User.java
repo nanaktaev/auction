@@ -7,50 +7,30 @@ import java.sql.SQLException;
 
 @TableName("Users")
 public class User extends BaseEntity {
+
     private String email;
     private String password;
     private String username;
     private Role role;
     private Integer companyId;
 
-    public User(Integer id, String email, String password, String username, Integer companyId) {
-        this.setId(id);
-        this.email = email;
-        this.password = password;
-        this.username = username;
-        this.companyId = companyId;
-    }
-
     @Override
-    public User buildFromResultSet(ResultSet resultSet) {
-        try {
-            int id = resultSet.getInt(1);
-            String email = resultSet.getString(2);
-            String password = resultSet.getString(3);
-            String username = resultSet.getString(4);
-            int companyId = resultSet.getInt(5);
+    public User buildFromResultSet(ResultSet resultSet) throws SQLException {
 
-            return new User(id, email, password, username, companyId);
+        User user = new User();
+        user.setId(resultSet.getInt(1));
+        user.setEmail(resultSet.getString(2));
+        user.setPassword(resultSet.getString(3));
+        user.setUsername(resultSet.getString(4));
+        user.setRole(Role.valueOf(resultSet.getString(5)));
+        user.setCompanyId(resultSet.getInt(6));
 
-        } catch (
-                SQLException sqlException) {
-            System.out.println(sqlException.getMessage());
-        }
-        return null;
-    }
-
-    public User(String email, String password, String username) {
-        this.email = email;
-        this.password = password;
-        this.username = username;
-    }
-
-    public User() {
+        return user;
     }
 
     @Override
     public String toString() {
-        return "Пользователь №" + super.toString() +
+        return "Пользователь №" + super.getId() +
                 ":\nemail - " + email +
                 ", пароль - " + password +
                 "\nимя - " + username +
@@ -59,12 +39,12 @@ public class User extends BaseEntity {
                 '.';
     }
 
-    public User(String email, String password, String username, Role role, Integer companyId) {
-        this.email = email;
-        this.password = password;
-        this.username = username;
-        this.role = role;
-        this.companyId = companyId;
+    public Integer getId() {
+        return super.getId();
+    }
+
+    public void setId(Integer id) {
+        super.setId(id);
     }
 
     public String getEmail() {

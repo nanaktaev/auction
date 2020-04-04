@@ -47,11 +47,11 @@ public class LotValidator {
         }
     }
 
-    public static void validateOwnership(Lot lot, Integer userId) {
+    public static void validateOwnership(Lot lot, Integer companyId) {
         if (lot == null) {
             throw new IllegalStateException("Ошибка. Лота с таким id не существует.");
         }
-        if (lot.getVendorId() != userId) {
+        if (lot.getCompanyId() != companyId) {
             throw new IllegalStateException("Ошибка. Вы не можете редактировать чужой лот.");
         }
     }

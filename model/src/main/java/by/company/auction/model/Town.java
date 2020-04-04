@@ -4,44 +4,33 @@ import by.company.auction.annotaitions.TableName;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 @TableName("Towns")
 public class Town extends BaseEntity {
+
     private String name;
 
     @Override
-    public Town buildFromResultSet(ResultSet resultSet) {
-        try {
-            int id = resultSet.getInt(1);
-            String name = resultSet.getString(2);
+    public Town buildFromResultSet(ResultSet resultSet) throws SQLException {
 
-            return new Town(id, name);
+        Town town = new Town();
+        town.setId(resultSet.getInt(1));
+        town.setName(resultSet.getString(2));
 
-        } catch (
-                SQLException sqlException) {
-            System.out.println(sqlException.getMessage());
-        }
-        return null;
-    }
-
-    public Town(Integer id, String name) {
-        this.setId(id);
-        this.name = name;
+        return town;
     }
 
     @Override
     public String toString() {
-        return super.toString() + ". " + name;
+        return super.getId() + ". " + name;
     }
 
-    public Town() {
+    public Integer getId() {
+        return super.getId();
     }
 
-    public Town(String name, Integer... lotIds) {
-        this.name = name;
+    public void setId(Integer id) {
+        super.setId(id);
     }
 
     public String getName() {

@@ -25,6 +25,10 @@ public abstract class AbstractService<T extends BaseEntity, DAO extends Abstract
         return dao.create(entity);
     }
 
+    public void delete(Integer id) {
+        dao.delete(id);
+    }
+
     public T update(T entity) {
         return dao.update(entity);
     }
@@ -33,7 +37,4 @@ public abstract class AbstractService<T extends BaseEntity, DAO extends Abstract
         return findById(id) != null;
     }
 
-    List<T> findByIds(List<Integer> ids) {
-        return dao.findByIds(ids);
-    }
 }

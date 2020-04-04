@@ -15,7 +15,7 @@ public class BidValidator {
             throw new IllegalStateException("Ошибка. Торги по данному лоту уже окончены.");
         }
 
-        Bid topBid = BidService.getInstance().findTopBid(lot);
+        Bid topBid = BidService.getInstance().findTopBidByLotId(lot.getId());
 
         if (topBid != null && userId.equals(topBid.getUserId())) {
             throw new IllegalStateException("Ошибка. Ваша ставка уже на вершине.");

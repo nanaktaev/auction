@@ -7,6 +7,7 @@ import org.apache.commons.validator.routines.EmailValidator;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.Scanner;
 
 import static by.company.auction.console.menu.MenuConfig.*;
@@ -18,17 +19,20 @@ public class MenuUtil {
     public static void readCommand(Menu menu) {
         String commandName = scanner.nextLine();
 
-        for (Command command : menu.getCommands()) {
-            if (command.getName().equals(commandName)) {
-                try {
-                    command.run();
-                } catch (IllegalStateException exception) {
-                    System.out.println(exception.getMessage() + '\n');
-                    readCommand(menu);
-                }
-                return;
+        Optional<Command> calledCommand = menu.getCommands().stream().
+                filter(command -> command.getName().equals(commandName)).
+                findFirst();
+
+        if (calledCommand.isPresent()) {
+            try {
+                calledCommand.get().run();
+            } catch (IllegalStateException exception) {
+                System.out.println(exception.getMessage() + '\n');
+                readCommand(menu);
             }
+            return;
         }
+
         System.out.println("Введена несуществующая команда.\n");
         readCommand(menu);
     }

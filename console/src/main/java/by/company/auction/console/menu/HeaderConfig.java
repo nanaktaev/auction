@@ -1,6 +1,6 @@
 package by.company.auction.console.menu;
 
-class HeaderContainer {
+class HeaderConfig {
     final static String WELCOME_MENU_HEADER = "\n      ':.\n" +
             "         []_____\n" +
             "        /\\      \\\n" +

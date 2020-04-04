@@ -7,6 +7,7 @@ public class Authentication {
     private Integer userId;
     private String username;
     private Role userRole;
+    private Integer userCompanyId;
 
     Authentication() {
     }
@@ -15,12 +16,14 @@ public class Authentication {
         userId = user.getId();
         username = user.getUsername();
         userRole = user.getRole();
+        userCompanyId = user.getCompanyId();
     }
 
     public void clear() {
         userId = null;
         username = null;
         userRole = null;
+        userCompanyId = null;
     }
 
     public Integer getUserId() {
@@ -45,5 +48,13 @@ public class Authentication {
 
     public void setUserRole(Role userRole) {
         this.userRole = userRole;
+    }
+
+    public Integer getUserCompanyId() {
+        return userCompanyId;
+    }
+
+    public void setUserCompanyId(Integer userCompanyId) {
+        this.userCompanyId = userCompanyId;
     }
 }

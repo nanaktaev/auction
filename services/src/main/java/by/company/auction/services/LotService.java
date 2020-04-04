@@ -1,14 +1,10 @@
 package by.company.auction.services;
 
 import by.company.auction.dao.LotDao;
-import by.company.auction.model.Category;
 import by.company.auction.model.Lot;
-import by.company.auction.model.Town;
-import by.company.auction.model.User;
 import by.company.auction.validators.LotValidator;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static by.company.auction.secuirty.AuthenticatonConfig.authentication;
@@ -41,16 +37,11 @@ public class LotService extends AbstractService<Lot, LotDao> {
 
         LotValidator.validate(lot);
 
-        lot.setVendorId(userId);
+        lot.setCompanyId(UserService.getInstance().findById(userId).getCompanyId());
         lot.setOpened(LocalDateTime.now());
         lot.setPrice(lot.getPriceStart());
-        create(lot);
 
-        return lot;
-    }
-
-    public void deleteLot(Integer lotId) {
-        dao.deleteLotById(lotId);
+        return create(lot);
     }
 
     public static LotService getInstance() {

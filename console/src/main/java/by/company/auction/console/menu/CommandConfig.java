@@ -65,9 +65,8 @@ class CommandConfig {
         }
 
         System.out.println("Все лоты:");
-        for (Lot lot : lots) {
-            System.out.println(lot);
-        }
+        lots.forEach(System.out::println);
+
         MenuUtil.readCommand(MenuUtil.getMainMenuByRole(authentication.getUserRole()));
         return null;
     });
@@ -83,9 +82,7 @@ class CommandConfig {
             System.out.println("Пока что на этом лоте нет ставок.");
         } else {
             Collections.reverse(bids);
-            for (Bid bid : bids) {
-                System.out.println(bid);
-            }
+            bids.forEach(System.out::println);
         }
 
         MenuUtil.readCommand(MenuUtil.getMainMenuByRole(authentication.getUserRole()));
@@ -102,9 +99,7 @@ class CommandConfig {
         }
 
         System.out.println("Доступные города:");
-        for (Town town : towns) {
-            System.out.println(town);
-        }
+        towns.forEach(System.out::println);
 
         Integer townId = Integer.parseInt(MenuUtil.readNumericValue("\nВведите id города:"));
 
@@ -113,9 +108,7 @@ class CommandConfig {
         if (lots.isEmpty()) {
             System.out.println("Пока что в этом городе нет лотов.");
         } else {
-            for (Lot lot : lots) {
-                System.out.println(lot);
-            }
+            lots.forEach(System.out::println);
         }
 
         MenuUtil.readCommand(MenuUtil.getMainMenuByRole(authentication.getUserRole()));
@@ -132,9 +125,7 @@ class CommandConfig {
         }
 
         System.out.println("Доступные категории:");
-        for (Category category : categories) {
-            System.out.println(category);
-        }
+        categories.forEach(System.out::println);
 
         Integer categoryId = Integer.parseInt(MenuUtil.readNumericValue("\nВведите id категории:"));
 
@@ -143,9 +134,7 @@ class CommandConfig {
         if (lots.isEmpty()) {
             System.out.println("Пока что в этой категории нет лотов.");
         } else {
-            for (Lot lot : lots) {
-                System.out.println(lot);
-            }
+            lots.forEach(System.out::println);
         }
 
         MenuUtil.readCommand(MenuUtil.getMainMenuByRole(authentication.getUserRole()));
@@ -171,9 +160,8 @@ class CommandConfig {
                 MenuUtil.readCommand(MAIN_MENU_ADMIN);
             }
             System.out.println("Доступные компании:");
-            for (Company company : companyService.findAll()) {
-                System.out.println(company);
-            }
+            companyService.findAll().forEach(System.out::println);
+
             companyId = Integer.parseInt(MenuUtil.readNumericValue("\nВведите id компании продавца:"));
         }
 
@@ -192,12 +180,10 @@ class CommandConfig {
             MenuUtil.readCommand(MAIN_MENU_VENDOR);
         }
 
-        String name = MenuUtil.readStringValue("Введите название лота:");
+        String title = MenuUtil.readStringValue("Введите название лота:");
 
         System.out.println();
-        for (Category category : categoryService.findAll()) {
-            System.out.println(category);
-        }
+        categoryService.findAll().forEach(System.out::println);
 
         Integer categoryId = Integer.parseInt(MenuUtil.readNumericValue("\nВведите id категории лота:"));
         String description = MenuUtil.readStringValue("Введите описание лота:");
@@ -206,13 +192,20 @@ class CommandConfig {
         LocalDateTime closes = MenuUtil.readDateTimeValue("Введите дату и время окончания торгов.\nКорректный формат: гггг-ММ-дд ЧЧ:мм\nПример: 2020-07-21 16:30");
 
         System.out.println();
-        for (Town town : townService.findAll()) {
-            System.out.println(town);
-        }
+        townService.findAll().forEach(System.out::println);
 
         Integer townId = Integer.parseInt(MenuUtil.readNumericValue("\nВведите id города, где находится лот:"));
 
-        Lot lot = lotService.createLot(new Lot(name, description, priceStart, step, closes, categoryId, townId));
+        Lot lot = new Lot();
+        lot.setTitle(title);
+        lot.setDescription(description);
+        lot.setPriceStart(priceStart);
+        lot.setStep(step);
+        lot.setCloses(closes);
+        lot.setCategoryId(categoryId);
+        lot.setTownId(townId);
+
+        lot = lotService.createLot(lot);
         System.out.println("Лот создан:\n" + lot);
 
         MenuUtil.readCommand(MAIN_MENU_VENDOR);
@@ -222,11 +215,15 @@ class CommandConfig {
     static final Command CREATE_TOWN_COMMAND = new Command("ctown", "добавить город.", () -> {
 
         String name = StringUtils.capitalize(MenuUtil.readStringValue("Введите название города:").toLowerCase());
-        if (!(townService.findByName(name) == null)) {
+        if (!(townService.findTownByName(name) == null)) {
             System.out.println("Данный город уже был добавлен.");
             MenuUtil.readCommand(MAIN_MENU_ADMIN);
         }
-        townService.create(new Town(name));
+
+        Town town = new Town();
+        town.setName(name);
+
+        townService.create(town);
         System.out.println("Город добавлен.");
         MenuUtil.readCommand(MAIN_MENU_ADMIN);
         return null;
@@ -235,11 +232,15 @@ class CommandConfig {
     static final Command CREATE_CATEGORY_COMMAND = new Command("ccat", "добавить категорию.", () -> {
 
         String name = StringUtils.capitalize(MenuUtil.readStringValue("Введите название категории:").toLowerCase());
-        if (!(categoryService.findByName(name) == null)) {
+        if (!(categoryService.findCategoryByName(name) == null)) {
             System.out.println("Данная категория уже существует.");
             MenuUtil.readCommand(MAIN_MENU_ADMIN);
         }
-        categoryService.create(new Category(name));
+
+        Category category = new Category();
+        category.setName(name);
+
+        categoryService.create(category);
         System.out.println("Категория добавлена.");
         MenuUtil.readCommand(MAIN_MENU_ADMIN);
         return null;
@@ -248,11 +249,15 @@ class CommandConfig {
     static final Command CREATE_COMPANY_COMMAND = new Command("ccom", "добавить компанию.", () -> {
 
         String name = MenuUtil.readStringValue("Введите название компании:");
-        if (!(companyService.findByName(name) == null)) {
+        if (!(companyService.findCompanyByName(name) == null)) {
             System.out.println("Данная компания уже зарегистрирована.");
             MenuUtil.readCommand(MAIN_MENU_ADMIN);
         }
-        companyService.create(new Company(name));
+
+        Company company = new Company();
+        company.setName(name);
+
+        companyService.create(company);
         System.out.println("Компания добавлена.");
         MenuUtil.readCommand(MAIN_MENU_ADMIN);
         return null;
@@ -261,7 +266,6 @@ class CommandConfig {
     static final Command EDIT_LOT_COMMAND = new Command("elot", "редактировать лот.", () -> {
 
         Role role = authentication.getUserRole();
-        Integer userId = authentication.getUserId();
 
         Integer lotId = Integer.parseInt(MenuUtil.readNumericValue("Введите id лота:"));
         editedLot = lotService.findById(lotId);
@@ -272,7 +276,7 @@ class CommandConfig {
         }
 
         if (role.equals(Role.VENDOR)) {
-            LotValidator.validateOwnership(editedLot, userId);
+            LotValidator.validateOwnership(editedLot, authentication.getUserCompanyId());
         }
 
         System.out.println("Редактируемый лот:\n" + editedLot);
@@ -326,9 +330,8 @@ class CommandConfig {
 
     static final Command EDIT_CATEGORY_COMMAND = new Command("cat", "изменить категорию.", () -> {
 
-        for (Category category : categoryService.findAll()) {
-            System.out.println(category);
-        }
+        categoryService.findAll().forEach(System.out::println);
+
         editedLot.setCategoryId(Integer.parseInt(MenuUtil.readNumericValue("\nВведите id категории лота:")));
 
         LotValidator.validateCategory(editedLot);
@@ -341,9 +344,8 @@ class CommandConfig {
 
     static final Command EDIT_TOWN_COMMAND = new Command("town", "изменить город.", () -> {
 
-        for (Town town : townService.findAll()) {
-            System.out.println(town);
-        }
+        townService.findAll().forEach(System.out::println);
+
         editedLot.setTownId(Integer.parseInt(MenuUtil.readNumericValue("\nВведите id города, где находится лот:")));
 
         LotValidator.validateTown(editedLot);
@@ -356,7 +358,7 @@ class CommandConfig {
 
     static final Command DELETE_LOT_COMMAND = new Command("del", "удалить лот.", () -> {
 
-        lotService.deleteLot(editedLot.getId());
+        lotService.delete(editedLot.getId());
         System.out.println("Лот удален.");
 
         Role role = authentication.getUserRole();
@@ -379,7 +381,12 @@ class CommandConfig {
         String password = MenuUtil.readPasswordValue("Введите пароль (не короче пяти символов):");
         String username = MenuUtil.readStringValue("Введите имя пользователя:");
 
-        User user = userService.registerUser(new User(email, password, username));
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(password);
+        user.setUsername(username);
+
+        user = userService.registerUser(user);
         System.out.println("Пользователь зарегистрирован:\n" + user);
 
         MenuUtil.readCommand(WELCOME_MENU);
@@ -391,7 +398,11 @@ class CommandConfig {
         Integer lotId = Integer.parseInt(MenuUtil.readNumericValue("Введите id лота:"));
         BigDecimal bidValue = new BigDecimal(MenuUtil.readNumericValue("Введите размер ставки:"));
 
-        Bid bid = bidService.makeBid(new Bid(lotId, bidValue));
+        Bid bid = new Bid();
+        bid.setLotId(lotId);
+        bid.setValue(bidValue);
+
+        bid = bidService.makeBid(bid);
         System.out.println("Ставка сделана:\n" + bid);
 
         MenuUtil.readCommand(MAIN_MENU);
@@ -411,9 +422,7 @@ class CommandConfig {
             System.out.println("У вас пока что нет сообщений.");
         } else {
             Collections.reverse(userMessages);
-            for (Message message : userMessages) {
-                System.out.println(message);
-            }
+            userMessages.forEach(System.out::println);
         }
         MenuUtil.readCommand(MAIN_MENU);
         return null;
