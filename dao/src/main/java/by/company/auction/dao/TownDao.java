@@ -10,7 +10,9 @@ public class TownDao extends AbstractDao<Town> {
     }
 
     public static TownDao getInstance() {
-        if(townDaoInstance != null) return townDaoInstance;
+        if (townDaoInstance != null) {
+            return townDaoInstance;
+        }
         townDaoInstance = new TownDao();
         return townDaoInstance;
     }

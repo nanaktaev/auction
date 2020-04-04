@@ -46,7 +46,9 @@ public class UserService extends AbstractService<User, UserDao> {
     }
 
     public static UserService getInstance() {
-        if (userServiceInstance != null) return userServiceInstance;
+        if (userServiceInstance != null) {
+            return userServiceInstance;
+        }
         userServiceInstance = new UserService();
         userServiceInstance.setDao(UserDao.getInstance());
         return userServiceInstance;

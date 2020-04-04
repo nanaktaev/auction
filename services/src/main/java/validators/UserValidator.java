@@ -9,9 +9,11 @@ public class UserValidator {
 
         UserService userService = UserService.getInstance();
 
-        if (userService.findUserByEmail(user.getEmail()) != null)
+        if (userService.findUserByEmail(user.getEmail()) != null) {
             throw new IllegalStateException("Ошибка. Данная почта уже используется.");
-        if (userService.findUserByUsername(user.getUsername()) != null)
+        }
+        if (userService.findUserByUsername(user.getUsername()) != null) {
             throw new IllegalStateException("Ошибка. Данное имя пользователя уже занято.");
+        }
     }
 }

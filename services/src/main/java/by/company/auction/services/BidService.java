@@ -23,7 +23,9 @@ public class BidService extends AbstractService<Bid, BidDao> {
             Integer topBidId = 0;
 
             for (Integer bidId : lot.getBidIds()) {
-                if (bidId > topBidId) topBidId = bidId;
+                if (bidId > topBidId) {
+                    topBidId = bidId;
+                }
             }
             return findById(topBidId);
         }
@@ -31,38 +33,50 @@ public class BidService extends AbstractService<Bid, BidDao> {
     }
 
     public Bid makeBid(Bid bid) {
-        LotService lotService = LotService.getInstance();
-        UserService userService = UserService.getInstance();
-
-        Lot lot = lotService.findById(bid.getLotId());
-        Bid topBid = findTopBid(lot);
+        Lot lot = LotService.getInstance().findById(bid.getLotId());
         Integer userId = authentication.getUserId();
 
         BidValidator.validate(lot, bid, userId);
+
+        Bid topBid = findTopBid(lot);
 
         bid.setTime(LocalDateTime.now());
         bid.setUserId(userId);
         bid = create(bid);
 
-        lot.setPrice(bid.getValue());
-        lot.getBidIds().add(bid.getId());
-        lot.getUserIds().add(userId);
-        if (lot.isBurning()) lot.setCloses(LocalDateTime.now().plusMinutes(3));
-        lotService.update(lot);
+        addBidToLot(bid, lot, userId);
+        addBidToUser(bid.getId(), lot.getId(), userId);
 
-        User user = userService.findById(userId);
-        user.getBidIds().add(bid.getId());
-        if (!user.getLotIds().contains(lot.getId()))
-            user.getLotIds().add(lot.getId());
-        userService.update(user);
-
-        if (topBid != null)
+        if (topBid != null) {
             MessageService.getInstance().createWarningMessage(topBid.getUserId(), bid);
-
+        }
         return bid;
     }
 
-    public boolean isUserLeading(Lot lot, Integer userId) {
+    private void addBidToUser(Integer bidId, Integer lotId, Integer userId) {
+        UserService userService = UserService.getInstance();
+        User user = userService.findById(userId);
+
+        user.getBidIds().add(bidId);
+        if (!user.getLotIds().contains(lotId)) {
+            user.getLotIds().add(lotId);
+        }
+        userService.update(user);
+    }
+
+    private void addBidToLot(Bid bid, Lot lot, Integer userId) {
+
+        lot.setPrice(bid.getValue());
+        lot.getBidIds().add(bid.getId());
+        lot.getUserIds().add(userId);
+        if (lot.isBurning()) {
+            lot.setCloses(LocalDateTime.now().plusMinutes(3));
+        }
+
+        LotService.getInstance().update(lot);
+    }
+
+    boolean isUserLeading(Lot lot, Integer userId) {
         List<Bid> bids = findByIds(lot.getBidIds());
         Bid topBid = bids.get(0);
         for (Bid bid : bids) {
@@ -72,8 +86,9 @@ public class BidService extends AbstractService<Bid, BidDao> {
     }
 
     public List<Bid> findBidsByLotId(Integer lotId) {
-        if (LotService.getInstance().findById(lotId) == null)
+        if (LotService.getInstance().findById(lotId) == null) {
             throw new IllegalStateException("Ошибка. Лот по данному id не найден.");
+        }
         return findByIds(LotService.getInstance().findById(lotId).getBidIds());
     }
 
@@ -94,7 +109,9 @@ public class BidService extends AbstractService<Bid, BidDao> {
     }
 
     public static BidService getInstance() {
-        if (bidServiceInstance != null) return bidServiceInstance;
+        if (bidServiceInstance != null) {
+            return bidServiceInstance;
+        }
         bidServiceInstance = new BidService();
         bidServiceInstance.setDao(BidDao.getInstance());
         return bidServiceInstance;

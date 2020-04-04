@@ -16,8 +16,9 @@ public class MessageDao extends AbstractDao<Message> {
     public List<Message> findMessagesByUserId(Integer userId) {
         ArrayList<Message> messages = new ArrayList<>();
         for (Message message : findAll()) {
-            if (message.getUserId().equals(userId))
+            if (message.getUserId().equals(userId)) {
                 messages.add(message);
+            }
         }
         return messages;
     }
@@ -25,14 +26,17 @@ public class MessageDao extends AbstractDao<Message> {
     public List<Message> findOutcomeMessagesByUserId(Integer userId) {
         ArrayList<Message> outcomeMessages = new ArrayList<>();
         for (Message message : findAll()) {
-            if (message.getUserId().equals(userId) && message.getType().equals(MessageType.OUTCOME))
+            if (message.getUserId().equals(userId) && message.getType().equals(MessageType.OUTCOME)) {
                 outcomeMessages.add(message);
+            }
         }
         return outcomeMessages;
     }
 
     public static MessageDao getInstance() {
-        if (messageDaoInstance != null) return messageDaoInstance;
+        if (messageDaoInstance != null) {
+            return messageDaoInstance;
+        }
         messageDaoInstance = new MessageDao();
         return messageDaoInstance;
     }

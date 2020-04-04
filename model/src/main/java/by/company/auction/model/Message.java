@@ -3,7 +3,7 @@ package by.company.auction.model;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class Message extends Base{
+public class Message extends Base {
     private String text;
     private LocalDateTime time;
     private MessageType type;

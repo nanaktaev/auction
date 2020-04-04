@@ -8,13 +8,13 @@ public class Command {
     private Supplier action;
 
 
-    public Command(String name, String description, Supplier action) {
+    Command(String name, String description, Supplier action) {
         this.name = name;
         this.description = description;
         this.action = action;
     }
 
-    public void run() {
+    void run() {
         action.get();
     }
 
@@ -24,6 +24,7 @@ public class Command {
         return name + " - " + description;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public String getName() {
         return name;
     }

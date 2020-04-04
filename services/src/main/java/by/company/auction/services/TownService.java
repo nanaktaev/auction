@@ -11,7 +11,9 @@ public class TownService extends AbstractService<Town, TownDao> {
     }
 
     public static TownService getInstance() {
-        if (townServiceInstance != null) return townServiceInstance;
+        if (townServiceInstance != null) {
+            return townServiceInstance;
+        }
         townServiceInstance = new TownService();
         townServiceInstance.setDao(TownDao.getInstance());
         return townServiceInstance;

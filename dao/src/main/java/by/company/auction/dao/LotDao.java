@@ -15,7 +15,9 @@ public class LotDao extends AbstractDao<Lot> {
     public List<Lot> findLotsByTownId(Integer townId) {
         ArrayList<Lot> lots = new ArrayList<>();
         for (Lot lot : findAll()) {
-            if (townId.equals(lot.getTownId())) lots.add(lot);
+            if (townId.equals(lot.getTownId())) {
+                lots.add(lot);
+            }
         }
         return lots;
     }
@@ -23,7 +25,9 @@ public class LotDao extends AbstractDao<Lot> {
     public List<Lot> findLotsByCategoryId(Integer categoryId) {
         ArrayList<Lot> lots = new ArrayList<>();
         for (Lot lot : findAll()) {
-            if (categoryId.equals(lot.getCategoryId())) lots.add(lot);
+            if (categoryId.equals(lot.getCategoryId())) {
+                lots.add(lot);
+            }
         }
         return lots;
     }
@@ -31,7 +35,9 @@ public class LotDao extends AbstractDao<Lot> {
     public List<Lot> findLotsByUserId(Integer userId) {
         ArrayList<Lot> lots = new ArrayList<>();
         for (Lot lot : findAll()) {
-            if (lot.getUserIds().contains(userId)) lots.add(lot);
+            if (lot.getUserIds().contains(userId)) {
+                lots.add(lot);
+            }
         }
         return lots;
     }
@@ -39,13 +45,17 @@ public class LotDao extends AbstractDao<Lot> {
     public List<Lot> findExpiredLotsByUserId(Integer userId) {
         ArrayList<Lot> lots = new ArrayList<>();
         for (Lot lot : findAll()) {
-            if (lot.getUserIds().contains(userId) && lot.isExpired()) lots.add(lot);
+            if (lot.getUserIds().contains(userId) && lot.isExpired()) {
+                lots.add(lot);
+            }
         }
         return lots;
     }
 
     public static LotDao getInstance() {
-        if (lotDaoInstance != null) return lotDaoInstance;
+        if (lotDaoInstance != null) {
+            return lotDaoInstance;
+        }
         lotDaoInstance = new LotDao();
         return lotDaoInstance;
     }
