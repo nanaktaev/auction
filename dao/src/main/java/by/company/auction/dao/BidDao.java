@@ -7,6 +7,7 @@ public class BidDao extends AbstractDao<Bid> {
     private static BidDao bidDaoInstance;
 
     private BidDao() {
+        super(Bid.class);
     }
 
     public static BidDao getInstance() {

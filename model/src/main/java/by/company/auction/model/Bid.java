@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class Bid extends Base {
+public class Bid extends BaseEntity {
     private BigDecimal value;
     private LocalDateTime time;
 
@@ -16,6 +16,9 @@ public class Bid extends Base {
         this.time = time;
         this.lotId = lotId;
         this.userId = userId;
+    }
+
+    public Bid() {
     }
 
     public Bid(Integer lotId, BigDecimal value) {

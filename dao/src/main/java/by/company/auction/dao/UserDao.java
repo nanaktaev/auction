@@ -7,6 +7,7 @@ public class UserDao extends AbstractDao<User> {
     private static UserDao userDaoInstance;
 
     private UserDao() {
+        super(User.class);
     }
 
     public User findUserByEmail(String email) {

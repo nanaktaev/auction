@@ -10,6 +10,10 @@ public class TownService extends AbstractService<Town, TownDao> {
     private TownService() {
     }
 
+    public Town findByName(String name) {
+        return dao.findByName(name);
+    }
+
     public static TownService getInstance() {
         if (townServiceInstance != null) {
             return townServiceInstance;

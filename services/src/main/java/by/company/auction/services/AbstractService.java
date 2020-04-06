@@ -1,11 +1,11 @@
 package by.company.auction.services;
 
 import by.company.auction.dao.AbstractDao;
-import by.company.auction.model.Base;
+import by.company.auction.model.BaseEntity;
 
 import java.util.List;
 
-public abstract class AbstractService<T extends Base, DAO extends AbstractDao<T>> {
+public abstract class AbstractService<T extends BaseEntity, DAO extends AbstractDao<T>> {
 
     DAO dao;
 

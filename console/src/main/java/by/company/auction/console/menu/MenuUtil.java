@@ -9,8 +9,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
-import static by.company.auction.console.menu.MenuContainer.*;
-import static by.company.auction.console.menu.MenuContainer.MAIN_MENU_ADMIN;
+import static by.company.auction.console.menu.MenuConfig.*;
 
 public class MenuUtil {
 

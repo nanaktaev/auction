@@ -1,4 +1,4 @@
-package validators;
+package by.company.auction.validators;
 
 import by.company.auction.model.User;
 import by.company.auction.services.UserService;

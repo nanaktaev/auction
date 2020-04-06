@@ -2,7 +2,7 @@ package by.company.auction.model;
 
 import java.util.List;
 
-public class User extends Base {
+public class User extends BaseEntity {
     private String email;
     private String password;
     private String username;
@@ -17,6 +17,9 @@ public class User extends Base {
         this.email = email;
         this.password = password;
         this.username = username;
+    }
+
+    public User() {
     }
 
     @Override

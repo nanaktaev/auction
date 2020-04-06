@@ -3,7 +3,7 @@ package by.company.auction.services;
 import by.company.auction.dao.UserDao;
 import by.company.auction.model.Role;
 import by.company.auction.model.User;
-import validators.UserValidator;
+import by.company.auction.validators.UserValidator;
 
 import java.util.ArrayList;
 
@@ -37,7 +37,11 @@ public class UserService extends AbstractService<User, UserDao> {
 
         UserValidator.validate(user);
 
-        user.setRole(Role.USER);
+        if (findAll().isEmpty()) {
+            user.setRole(Role.ADMIN);
+        } else {
+            user.setRole(Role.USER);
+        }
         user.setBidIds(new ArrayList<>());
         user.setMessageIds(new ArrayList<>());
         user.setLotIds(new ArrayList<>());

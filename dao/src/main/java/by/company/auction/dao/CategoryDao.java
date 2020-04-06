@@ -7,6 +7,16 @@ public class CategoryDao extends AbstractDao<Category> {
     private static CategoryDao categoryDaoInstance;
 
     private CategoryDao() {
+        super(Category.class);
+    }
+
+    public Category findByName(String name) {
+        for (Category category : findAll()) {
+            if (name.equals(category.getName())) {
+                return category;
+            }
+        }
+        return null;
     }
 
     public static CategoryDao getInstance() {
