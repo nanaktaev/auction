@@ -15,7 +15,7 @@ public class CompanyDao extends AbstractDao<Company> {
     }
 
     @Override
-    Class<Company> getEntityClass() {
+    protected Class<Company> getEntityClass() {
         return Company.class;
     }
 
@@ -36,7 +36,7 @@ public class CompanyDao extends AbstractDao<Company> {
             resultSet.close();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return findById(companyId);
     }
@@ -51,12 +51,14 @@ public class CompanyDao extends AbstractDao<Company> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return company;
     }
 
     public Company findCompanyByName(String name) {
+
+        Company company = null;
 
         try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
                 "SELECT * FROM companies WHERE name = ?")) {
@@ -64,14 +66,14 @@ public class CompanyDao extends AbstractDao<Company> {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                return Company.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
+                company = Company.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
             }
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
-        throw new IllegalStateException("Не удалось получить данные.");
+        return company;
     }
 
     public static CompanyDao getInstance() {

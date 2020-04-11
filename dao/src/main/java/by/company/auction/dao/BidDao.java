@@ -17,7 +17,7 @@ public class BidDao extends AbstractDao<Bid> {
     }
 
     @Override
-    Class<Bid> getEntityClass() {
+    protected Class<Bid> getEntityClass() {
         return Bid.class;
     }
 
@@ -41,7 +41,7 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return findById(bidId);
     }
@@ -59,12 +59,14 @@ public class BidDao extends AbstractDao<Bid> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return bid;
     }
 
     public Bid findTopBidByLotId(Integer lotId) {
+
+        Bid topBid = null;
 
         try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
                 "SELECT * FROM bids WHERE value = (SELECT MAX(value) FROM bids WHERE lot_id = ?)")) {
@@ -72,14 +74,14 @@ public class BidDao extends AbstractDao<Bid> {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                return Bid.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
+                topBid = Bid.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
             }
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
-        throw new IllegalStateException("Не удалось получить данные.");
+        return topBid;
     }
 
     public List<Bid> findBidsByLotId(Integer lotId) {
@@ -97,7 +99,7 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return bids;
     }
@@ -117,7 +119,7 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return bids;
     }

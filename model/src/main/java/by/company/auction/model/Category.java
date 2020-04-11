@@ -5,7 +5,7 @@ import by.company.auction.annotaitions.TableName;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@TableName("Categories")
+@TableName("categories")
 public class Category extends BaseEntity {
 
     private String name;

@@ -17,7 +17,7 @@ public class LotDao extends AbstractDao<Lot> {
     }
 
     @Override
-    Class<Lot> getEntityClass() {
+    protected Class<Lot> getEntityClass() {
         return Lot.class;
     }
 
@@ -49,7 +49,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return findById(lotId);
     }
@@ -74,7 +74,7 @@ public class LotDao extends AbstractDao<Lot> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return lot;
     }
@@ -94,7 +94,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return lots;
     }
@@ -114,7 +114,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return lots;
     }
@@ -135,7 +135,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return lots;
     }
@@ -156,7 +156,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return lots;
     }

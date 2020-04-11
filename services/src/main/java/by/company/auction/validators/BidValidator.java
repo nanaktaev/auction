@@ -1,29 +1,43 @@
 package by.company.auction.validators;
 
+import by.company.auction.exceptions.AuctionException;
 import by.company.auction.model.Bid;
 import by.company.auction.model.Lot;
 import by.company.auction.services.BidService;
 
 public class BidValidator {
 
-    public static void validate(Lot lot, Bid bid, Integer userId) {
+    public void validate(Lot lot, Bid bid, Integer userId) {
 
         if (lot == null) {
-            throw new IllegalStateException("Ошибка. Лот по данному id не найден.");
+            throw new AuctionException("Ошибка. Лот по данному id не найден.");
         }
         if (lot.isExpired()) {
-            throw new IllegalStateException("Ошибка. Торги по данному лоту уже окончены.");
+            throw new AuctionException("Ошибка. Торги по данному лоту уже окончены.");
         }
 
         Bid topBid = BidService.getInstance().findTopBidByLotId(lot.getId());
 
         if (topBid != null && userId.equals(topBid.getUserId())) {
-            throw new IllegalStateException("Ошибка. Ваша ставка уже на вершине.");
+            throw new AuctionException("Ошибка. Ваша ставка уже на вершине.");
         }
 
         if (!lot.isBidValueEnough(bid.getValue())) {
-            throw new IllegalStateException("Ошибка. Ваша ставка недостаточно высока.");
+            throw new AuctionException("Ошибка. Ваша ставка недостаточно высока.");
         }
 
+    }
+
+    private static BidValidator bidValidatorInstance;
+
+    private BidValidator() {
+    }
+
+    public static BidValidator getInstance() {
+        if (bidValidatorInstance != null) {
+            return bidValidatorInstance;
+        }
+        bidValidatorInstance = new BidValidator();
+        return bidValidatorInstance;
     }
 }

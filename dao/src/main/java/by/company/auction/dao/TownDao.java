@@ -15,7 +15,7 @@ public class TownDao extends AbstractDao<Town> {
     }
 
     @Override
-    Class<Town> getEntityClass() {
+    protected Class<Town> getEntityClass() {
         return Town.class;
     }
 
@@ -36,7 +36,7 @@ public class TownDao extends AbstractDao<Town> {
             resultSet.close();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return findById(townId);
     }
@@ -51,12 +51,14 @@ public class TownDao extends AbstractDao<Town> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return town;
     }
 
     public Town findTownByName(String name) {
+
+        Town town = null;
 
         try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
                 "SELECT * FROM towns WHERE name = ?")) {
@@ -64,14 +66,14 @@ public class TownDao extends AbstractDao<Town> {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                return Town.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
+                town = Town.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
             }
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
-        throw new IllegalStateException("Не удалось получить данные.");
+        return town;
     }
 
     public static TownDao getInstance() {

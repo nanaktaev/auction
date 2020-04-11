@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-@TableName("Bids")
+@TableName("bids")
 public class Bid extends BaseEntity {
 
     private BigDecimal value;

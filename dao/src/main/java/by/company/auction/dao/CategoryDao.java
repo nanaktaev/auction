@@ -15,7 +15,7 @@ public class CategoryDao extends AbstractDao<Category> {
     }
 
     @Override
-    Class<Category> getEntityClass() {
+    protected Class<Category> getEntityClass() {
         return Category.class;
     }
 
@@ -36,7 +36,7 @@ public class CategoryDao extends AbstractDao<Category> {
             resultSet.close();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return findById(categoryId);
     }
@@ -51,12 +51,14 @@ public class CategoryDao extends AbstractDao<Category> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return category;
     }
 
     public Category findCategoryByName(String name) {
+
+        Category category = null;
 
         try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
                 "SELECT * FROM categories WHERE name = ?")) {
@@ -64,14 +66,14 @@ public class CategoryDao extends AbstractDao<Category> {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                return Category.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
+                category = Category.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
             }
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
-        throw new IllegalStateException("Не удалось получить данные.");
+        return category;
     }
 
     public static CategoryDao getInstance() {

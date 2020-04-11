@@ -19,7 +19,7 @@ public abstract class AbstractDao<T extends BaseEntity> {
     AbstractDao() {
     }
 
-    abstract Class<T> getEntityClass();
+    protected abstract Class<T> getEntityClass();
 
     @SuppressWarnings("WeakerAccess")
     public T findById(Integer id) {
@@ -32,13 +32,12 @@ public abstract class AbstractDao<T extends BaseEntity> {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                //noinspection unchecked
                 entity = ((T) tClass.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet));
             }
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return entity;
     }
@@ -51,11 +50,10 @@ public abstract class AbstractDao<T extends BaseEntity> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
     }
 
-    @SuppressWarnings("WeakerAccess")
     public List<T> findAll() {
 
         List<T> entities = new ArrayList<>();
@@ -65,13 +63,12 @@ public abstract class AbstractDao<T extends BaseEntity> {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                //noinspection unchecked
                 entities.add((T) tClass.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet));
             }
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return entities;
     }

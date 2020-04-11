@@ -17,7 +17,7 @@ public class MessageDao extends AbstractDao<Message> {
     }
 
     @Override
-    Class<Message> getEntityClass() {
+    protected Class<Message> getEntityClass() {
         return Message.class;
     }
 
@@ -42,7 +42,7 @@ public class MessageDao extends AbstractDao<Message> {
             resultSet.close();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return findById(messageId);
     }
@@ -61,7 +61,7 @@ public class MessageDao extends AbstractDao<Message> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
 
         return message;
@@ -82,7 +82,7 @@ public class MessageDao extends AbstractDao<Message> {
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return messages;
     }
@@ -102,7 +102,7 @@ public class MessageDao extends AbstractDao<Message> {
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return messages;
     }

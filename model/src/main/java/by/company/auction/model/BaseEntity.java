@@ -7,7 +7,7 @@ public abstract class BaseEntity {
 
     private Integer id;
 
-    public abstract BaseEntity buildFromResultSet(ResultSet resultSet) throws SQLException;
+    public abstract <T extends BaseEntity> T buildFromResultSet(ResultSet resultSet) throws SQLException;
 
     public Integer getId() {
         return id;

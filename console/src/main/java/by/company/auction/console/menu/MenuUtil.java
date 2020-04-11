@@ -1,5 +1,6 @@
 package by.company.auction.console.menu;
 
+import by.company.auction.exceptions.AuctionException;
 import by.company.auction.model.Role;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,15 +20,18 @@ public class MenuUtil {
     public static void readCommand(Menu menu) {
         String commandName = scanner.nextLine();
 
-        Optional<Command> calledCommand = menu.getCommands().stream().
-                filter(command -> command.getName().equals(commandName)).
-                findFirst();
+        Optional<Command> calledCommand = menu.getCommands().stream()
+                .filter(command -> command.getName().equals(commandName))
+                .findFirst();
 
         if (calledCommand.isPresent()) {
             try {
                 calledCommand.get().run();
-            } catch (IllegalStateException exception) {
-                System.out.println(exception.getMessage() + '\n');
+            } catch (AuctionException e) {
+                System.out.println(e.getMessage() + '\n');
+                readCommand(menu);
+            } catch (IllegalStateException e) {
+                System.out.println("Произошел сбой при взаимодействии с сервером. Не удалось выполнить операцию." + '\n');
                 readCommand(menu);
             }
             return;
@@ -41,7 +45,7 @@ public class MenuUtil {
         System.out.println(valueMessage);
         String value = scanner.nextLine();
         if ("cancel".equals(value)) {
-            throw new IllegalStateException("Действие отменено.");
+            throw new AuctionException("Действие отменено.");
         }
         if (StringUtils.isBlank(value)) {
             System.out.println("Ошибка. Введена пустая строка.\nДля отмены ввода введите cancel.\n");

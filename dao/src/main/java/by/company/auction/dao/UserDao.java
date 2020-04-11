@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-
 public class UserDao extends AbstractDao<User> {
 
     private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
@@ -16,7 +15,7 @@ public class UserDao extends AbstractDao<User> {
     }
 
     @Override
-    Class<User> getEntityClass() {
+    protected Class<User> getEntityClass() {
         return User.class;
     }
 
@@ -41,7 +40,7 @@ public class UserDao extends AbstractDao<User> {
             resultSet.close();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return findById(userId);
     }
@@ -60,12 +59,14 @@ public class UserDao extends AbstractDao<User> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
         return user;
     }
 
     public User findUserByEmail(String email) {
+
+        User user = null;
 
         try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
                 "SELECT * FROM users WHERE email = ?")) {
@@ -73,17 +74,19 @@ public class UserDao extends AbstractDao<User> {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                return User.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
+                user = User.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
             }
             resultSet.close();
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            throw new IllegalStateException();
         }
-        throw new IllegalStateException("Не удалось получить данные.");
+        return user;
     }
 
     public User findUserByUsername(String username) {
+
+        User user = null;
 
         try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
                 "SELECT * FROM users WHERE username = ?")) {
@@ -91,14 +94,14 @@ public class UserDao extends AbstractDao<User> {
             ResultSet resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                return User.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
+                user = User.class.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet);
             }
             resultSet.close();
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        throw new IllegalStateException("Не удалось получить данные.");
+        return user;
     }
 
     public static UserDao getInstance() {

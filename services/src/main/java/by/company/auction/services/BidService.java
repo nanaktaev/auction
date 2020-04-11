@@ -25,7 +25,7 @@ public class BidService extends AbstractService<Bid, BidDao> {
         Lot lot = LotService.getInstance().findById(bid.getLotId());
         Integer userId = authentication.getUserId();
 
-        BidValidator.validate(lot, bid, userId);
+        BidValidator.getInstance().validate(lot, bid, userId);
 
         Bid topBid = findTopBidByLotId(lot.getId());
 

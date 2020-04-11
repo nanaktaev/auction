@@ -5,6 +5,8 @@ import by.company.auction.model.Role;
 import by.company.auction.model.User;
 import by.company.auction.validators.UserValidator;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 public class UserService extends AbstractService<User, UserDao> {
 
     private static UserService userServiceInstance;
@@ -33,13 +35,9 @@ public class UserService extends AbstractService<User, UserDao> {
 
     public User registerUser(User user) {
 
-        UserValidator.validate(user);
+        UserValidator.getInstance().validate(user);
 
-        if (findAll().isEmpty()) {
-            user.setRole(Role.ADMIN);
-        } else {
-            user.setRole(Role.USER);
-        }
+        user.setRole(CollectionUtils.isEmpty(findAll()) ? Role.ADMIN : Role.USER);
 
         return create(user);
     }
@@ -52,4 +50,5 @@ public class UserService extends AbstractService<User, UserDao> {
         userServiceInstance.setDao(UserDao.getInstance());
         return userServiceInstance;
     }
+
 }

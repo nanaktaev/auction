@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-@TableName("Lots")
+@TableName("lots")
 public class Lot extends BaseEntity {
 
     private String title;

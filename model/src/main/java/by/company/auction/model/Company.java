@@ -5,7 +5,7 @@ import by.company.auction.annotaitions.TableName;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-@TableName("Companies")
+@TableName("companies")
 public class Company extends BaseEntity {
 
     private String name;
