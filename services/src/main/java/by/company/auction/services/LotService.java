@@ -24,6 +24,7 @@ public class LotService extends AbstractService<Lot, LotDao> {
         return dao.findLotsByCategoryId(categoryId);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public List<Lot> findLotsByUserId(Integer userId) {
         return dao.findLotsByUserId(userId);
     }
@@ -33,11 +34,11 @@ public class LotService extends AbstractService<Lot, LotDao> {
     }
 
     public Lot createLot(Lot lot) {
-        Integer userId = authentication.getUserId();
+        Integer companyId = authentication.getUserCompanyId();
 
-        LotValidator.validate(lot);
+        LotValidator.getInstance().validate(lot);
 
-        lot.setCompanyId(UserService.getInstance().findById(userId).getCompanyId());
+        lot.setCompanyId(companyId);
         lot.setOpened(LocalDateTime.now());
         lot.setPrice(lot.getPriceStart());
 

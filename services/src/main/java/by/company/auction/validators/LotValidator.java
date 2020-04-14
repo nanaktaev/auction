@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 public class LotValidator {
 
-    public static void validate(Lot lot) {
+    public void validate(Lot lot) {
         validateStartPrice(lot);
         validateStep(lot);
         validateClosingDate(lot);
@@ -18,37 +18,38 @@ public class LotValidator {
         validateTown(lot);
     }
 
-    public static void validateTown(Lot lot) {
+    public void validateTown(Lot lot) {
         if (TownService.getInstance().findById(lot.getTownId()) == null) {
             throw new AuctionException("Ошибка. Города с таким id не существует.");
         }
     }
 
-    public static void validateCategory(Lot lot) {
+    public void validateCategory(Lot lot) {
         if (CategoryService.getInstance().findById(lot.getCategoryId()) == null) {
             throw new AuctionException("Ошибка. Категории с таким id не существует.");
         }
     }
 
-    public static void validateClosingDate(Lot lot) {
+    public void validateClosingDate(Lot lot) {
         if (!lot.getCloses().isAfter(LocalDateTime.now().plusMinutes(3))) {
             throw new AuctionException("Ошибка. Торги не могут длиться меньше 3 минут (или оканчиваться в прошлом).");
         }
     }
 
-    public static void validateStep(Lot lot) {
+    public void validateStep(Lot lot) {
         if (lot.getStep().compareTo(new BigDecimal(1)) < 0) {
             throw new AuctionException("Ошибка. Минимальный шаг цены лота не может быть меньше 1.");
         }
     }
 
-    private static void validateStartPrice(Lot lot) {
+    @SuppressWarnings("WeakerAccess")
+    public void validateStartPrice(Lot lot) {
         if (lot.getPriceStart().compareTo(new BigDecimal(1)) < 0) {
             throw new AuctionException("Ошибка. Начальная цена лота не может быть ниже 1.");
         }
     }
 
-    public static void validateOwnership(Lot lot, Integer companyId) {
+    public void validateOwnership(Lot lot, Integer companyId) {
         if (lot == null) {
             throw new AuctionException("Ошибка. Лота с таким id не существует.");
         }
@@ -56,4 +57,18 @@ public class LotValidator {
             throw new AuctionException("Ошибка. Вы не можете редактировать чужой лот.");
         }
     }
+
+    private static LotValidator lotValidatorInstance;
+
+    private LotValidator() {
+    }
+
+    public static LotValidator getInstance() {
+        if (lotValidatorInstance != null) {
+            return lotValidatorInstance;
+        }
+        lotValidatorInstance = new LotValidator();
+        return lotValidatorInstance;
+    }
+
 }

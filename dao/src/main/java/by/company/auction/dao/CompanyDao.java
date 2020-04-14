@@ -1,6 +1,8 @@
 package by.company.auction.dao;
 
 import by.company.auction.model.Company;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +12,7 @@ public class CompanyDao extends AbstractDao<Company> {
 
     private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
     private static CompanyDao companyDaoInstance;
+    private static final Logger logger = LogManager.getLogger(UserDao.class);
 
     private CompanyDao() {
     }
@@ -36,6 +39,7 @@ public class CompanyDao extends AbstractDao<Company> {
             resultSet.close();
 
         } catch (SQLException e) {
+            logger.error("Failed to create a company.", e);
             throw new IllegalStateException();
         }
         return findById(companyId);
@@ -51,6 +55,7 @@ public class CompanyDao extends AbstractDao<Company> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
+            logger.error("Failed to update a company.", e);
             throw new IllegalStateException();
         }
         return company;
@@ -71,6 +76,7 @@ public class CompanyDao extends AbstractDao<Company> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find a company by name.", e);
             throw new IllegalStateException();
         }
         return company;

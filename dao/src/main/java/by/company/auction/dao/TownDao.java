@@ -1,6 +1,8 @@
 package by.company.auction.dao;
 
 import by.company.auction.model.Town;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +12,7 @@ public class TownDao extends AbstractDao<Town> {
 
     private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
     private static TownDao townDaoInstance;
+    private static final Logger logger = LogManager.getLogger(UserDao.class);
 
     private TownDao() {
     }
@@ -36,6 +39,7 @@ public class TownDao extends AbstractDao<Town> {
             resultSet.close();
 
         } catch (SQLException e) {
+            logger.error("Failed to create a town.", e);
             throw new IllegalStateException();
         }
         return findById(townId);
@@ -51,6 +55,7 @@ public class TownDao extends AbstractDao<Town> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
+            logger.error("Failed to update a town.", e);
             throw new IllegalStateException();
         }
         return town;
@@ -71,6 +76,7 @@ public class TownDao extends AbstractDao<Town> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find a town by name.", e);
             throw new IllegalStateException();
         }
         return town;

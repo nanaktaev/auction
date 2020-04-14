@@ -18,7 +18,8 @@ public class MessageService extends AbstractService<Message, MessageDao> {
     private MessageService() {
     }
 
-    private List<Message> findOutcomeMessagesByUserId(Integer userId) {
+    @SuppressWarnings("WeakerAccess")
+    public List<Message> findOutcomeMessagesByUserId(Integer userId) {
         return dao.findOutcomeMessagesByUserId(userId);
     }
 
@@ -26,7 +27,8 @@ public class MessageService extends AbstractService<Message, MessageDao> {
         return dao.findMessagesByUserId(userId);
     }
 
-    private void createOutcomeMessage(LocalDateTime time, Integer userId, Integer lotId, boolean userLeading) {
+    @SuppressWarnings("WeakerAccess")
+    public void createOutcomeMessage(LocalDateTime time, Integer userId, Integer lotId, boolean userLeading) {
 
         Message message = new Message();
         message.setTime(time);

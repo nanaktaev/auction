@@ -1,6 +1,8 @@
 package by.company.auction.dao;
 
 import by.company.auction.model.Bid;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +14,7 @@ public class BidDao extends AbstractDao<Bid> {
 
     private static BidDao bidDaoInstance;
     private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
+    private static final Logger logger = LogManager.getLogger(UserDao.class);
 
     private BidDao() {
     }
@@ -41,6 +44,7 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (SQLException e) {
+            logger.error("Failed to create a bid.", e);
             throw new IllegalStateException();
         }
         return findById(bidId);
@@ -59,6 +63,7 @@ public class BidDao extends AbstractDao<Bid> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
+            logger.error("Failed to update a bid.", e);
             throw new IllegalStateException();
         }
         return bid;
@@ -79,6 +84,7 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find a top bid of a lot.", e);
             throw new IllegalStateException();
         }
         return topBid;
@@ -99,6 +105,7 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find bids of a lot.", e);
             throw new IllegalStateException();
         }
         return bids;
@@ -119,6 +126,7 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find bids of a user.", e);
             throw new IllegalStateException();
         }
         return bids;

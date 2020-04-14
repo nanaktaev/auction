@@ -15,7 +15,7 @@ public class UserService extends AbstractService<User, UserDao> {
     }
 
     public User updateUserRole(Integer id, String roleString, Integer companyId) {
-        if (companyId != null && !CompanyService.getInstance().exists(companyId)) {
+        if (companyId != null && !TownService.getInstance().exists(companyId)) {
             throw new IllegalStateException("Ошибка. Компания по данному id не найдена.");
         }
         User user = findById(id);

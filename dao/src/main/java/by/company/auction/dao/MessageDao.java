@@ -1,6 +1,8 @@
 package by.company.auction.dao;
 
 import by.company.auction.model.Message;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +14,7 @@ public class MessageDao extends AbstractDao<Message> {
 
     private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
     private static MessageDao messageDaoInstance;
+    private static final Logger logger = LogManager.getLogger(UserDao.class);
 
     private MessageDao() {
     }
@@ -42,6 +45,7 @@ public class MessageDao extends AbstractDao<Message> {
             resultSet.close();
 
         } catch (SQLException e) {
+            logger.error("Failed to create a message.", e);
             throw new IllegalStateException();
         }
         return findById(messageId);
@@ -61,6 +65,7 @@ public class MessageDao extends AbstractDao<Message> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
+            logger.error("Failed to update a message.", e);
             throw new IllegalStateException();
         }
 
@@ -82,6 +87,7 @@ public class MessageDao extends AbstractDao<Message> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find messages of a user.", e);
             throw new IllegalStateException();
         }
         return messages;
@@ -102,6 +108,7 @@ public class MessageDao extends AbstractDao<Message> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find outcome messages of a user.", e);
             throw new IllegalStateException();
         }
         return messages;

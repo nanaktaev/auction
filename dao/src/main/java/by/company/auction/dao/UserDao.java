@@ -1,6 +1,8 @@
 package by.company.auction.dao;
 
 import by.company.auction.model.User;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,6 +12,7 @@ public class UserDao extends AbstractDao<User> {
 
     private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
     private static UserDao userDaoInstance;
+    private static final Logger logger = LogManager.getLogger(UserDao.class);
 
     private UserDao() {
     }
@@ -40,6 +43,7 @@ public class UserDao extends AbstractDao<User> {
             resultSet.close();
 
         } catch (SQLException e) {
+            logger.error("Failed to create a user.", e);
             throw new IllegalStateException();
         }
         return findById(userId);
@@ -59,6 +63,7 @@ public class UserDao extends AbstractDao<User> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
+            logger.error("Failed to update a user.", e);
             throw new IllegalStateException();
         }
         return user;
@@ -79,6 +84,7 @@ public class UserDao extends AbstractDao<User> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find a user by Email.", e);
             throw new IllegalStateException();
         }
         return user;
@@ -99,6 +105,7 @@ public class UserDao extends AbstractDao<User> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find a user by username.", e);
             System.out.println(e.getMessage());
         }
         return user;

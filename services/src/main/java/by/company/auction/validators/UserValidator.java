@@ -30,4 +30,5 @@ public class UserValidator {
         userValidatorInstance = new UserValidator();
         return userValidatorInstance;
     }
+
 }

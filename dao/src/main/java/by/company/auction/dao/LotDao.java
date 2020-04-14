@@ -1,6 +1,8 @@
 package by.company.auction.dao;
 
 import by.company.auction.model.Lot;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +14,7 @@ public class LotDao extends AbstractDao<Lot> {
 
     private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
     private static LotDao lotDaoInstance;
+    private static final Logger logger = LogManager.getLogger(UserDao.class);
 
     private LotDao() {
     }
@@ -49,6 +52,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (SQLException e) {
+            logger.error("Failed to create a lot.", e);
             throw new IllegalStateException();
         }
         return findById(lotId);
@@ -74,6 +78,7 @@ public class LotDao extends AbstractDao<Lot> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
+            logger.error("Failed to update a lot.", e);
             throw new IllegalStateException();
         }
         return lot;
@@ -94,6 +99,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find lots by town.", e);
             throw new IllegalStateException();
         }
         return lots;
@@ -114,6 +120,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find lots by category.", e);
             throw new IllegalStateException();
         }
         return lots;
@@ -135,6 +142,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find lots by user.", e);
             throw new IllegalStateException();
         }
         return lots;
@@ -156,6 +164,7 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find expired lots by user.", e);
             throw new IllegalStateException();
         }
         return lots;

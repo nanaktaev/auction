@@ -23,6 +23,7 @@ class CommandConfig {
     private static final TownService townService = TownService.getInstance();
     private static final CompanyService companyService = CompanyService.getInstance();
     private static final MessageService messageService = MessageService.getInstance();
+    private static final LotValidator lotValidator = LotValidator.getInstance();
 
     private static Lot editedLot = null;
 
@@ -267,7 +268,7 @@ class CommandConfig {
         }
 
         if (role.equals(Role.VENDOR)) {
-            LotValidator.validateOwnership(editedLot, authentication.getUserCompanyId());
+            lotValidator.validateOwnership(editedLot, authentication.getUserCompanyId());
         }
 
         System.out.println("Редактируемый лот:\n" + editedLot);
@@ -300,7 +301,7 @@ class CommandConfig {
     static final Command EDIT_STEP_COMMAND = new Command("step", "изменить минимальный шаг.", () -> {
         editedLot.setStep(new BigDecimal((MenuUtil.readNumericValue("Введите минимальный шаг цены лота:"))));
 
-        LotValidator.validateStep(editedLot);
+        lotValidator.validateStep(editedLot);
         lotService.update(editedLot);
 
         System.out.println("Шаг изменен.\n");
@@ -311,7 +312,7 @@ class CommandConfig {
     static final Command EDIT_CLOSES_COMMAND = new Command("close", "изменить дату окончания торгов.", () -> {
         editedLot.setCloses(MenuUtil.readDateTimeValue("Введите дату и время окончания торгов.\nКорректный формат: гггг-ММ-дд ЧЧ:мм\nПример: 2020-07-21 16:30"));
 
-        LotValidator.validateClosingDate(editedLot);
+        lotValidator.validateClosingDate(editedLot);
         lotService.update(editedLot);
 
         System.out.println("Дата оконачания торгов изменена.\n");
@@ -325,7 +326,7 @@ class CommandConfig {
 
         editedLot.setCategoryId(Integer.parseInt(MenuUtil.readNumericValue("\nВведите id категории лота:")));
 
-        LotValidator.validateCategory(editedLot);
+        lotValidator.validateCategory(editedLot);
         lotService.update(editedLot);
 
         System.out.println("Категория изменена.\n");
@@ -339,7 +340,7 @@ class CommandConfig {
 
         editedLot.setTownId(Integer.parseInt(MenuUtil.readNumericValue("\nВведите id города, где находится лот:")));
 
-        LotValidator.validateTown(editedLot);
+        lotValidator.validateTown(editedLot);
         lotService.update(editedLot);
 
         System.out.println("Город изменен.\n");

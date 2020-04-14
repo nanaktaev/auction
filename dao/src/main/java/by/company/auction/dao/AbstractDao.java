@@ -2,6 +2,8 @@ package by.company.auction.dao;
 
 import by.company.auction.annotaitions.TableName;
 import by.company.auction.model.BaseEntity;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +17,7 @@ public abstract class AbstractDao<T extends BaseEntity> {
 
     private final Class<T> tClass = getEntityClass();
     private final String tableName = tClass.getAnnotation(TableName.class).value();
+    private static final Logger logger = LogManager.getLogger(UserDao.class);
 
     AbstractDao() {
     }
@@ -37,6 +40,7 @@ public abstract class AbstractDao<T extends BaseEntity> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find an entity by id.", e);
             throw new IllegalStateException();
         }
         return entity;
@@ -50,6 +54,7 @@ public abstract class AbstractDao<T extends BaseEntity> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
+            logger.error("Failed to delete an entity.", e);
             throw new IllegalStateException();
         }
     }
@@ -68,6 +73,7 @@ public abstract class AbstractDao<T extends BaseEntity> {
             resultSet.close();
 
         } catch (Exception e) {
+            logger.error("Failed to find list of entities.", e);
             throw new IllegalStateException();
         }
         return entities;
