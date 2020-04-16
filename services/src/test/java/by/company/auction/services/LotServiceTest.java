@@ -1,31 +1,29 @@
 package by.company.auction.services;
 
+import by.company.auction.AbstractTest;
 import by.company.auction.dao.LotDao;
 import by.company.auction.model.Lot;
 import by.company.auction.validators.LotValidator;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import static by.company.auction.secuirty.AuthenticatonConfig.authentication;
+import static by.company.auction.common.security.AuthenticationConfig.authentication;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-public class LotServiceTest extends AbstractService {
+public class LotServiceTest extends AbstractTest {
 
     private Lot lot;
     private List<Lot> lots;
@@ -61,13 +59,13 @@ public class LotServiceTest extends AbstractService {
     @PrepareForTest({LotService.class, LotDao.class, LotValidator.class})
     public void createLot() {
 
-        final ArgumentCaptor<Lot> captor = ArgumentCaptor.forClass(Lot.class);
+        final ArgumentCaptor<Lot> CAPTOR = ArgumentCaptor.forClass(Lot.class);
 
         doNothing().when(lotValidator).validate(any(Lot.class));
 
         lotService.createLot(lot);
-        verify(lotDao).create(captor.capture());
-        Lot createdLot = captor.getValue();
+        verify(lotDao).create(CAPTOR.capture());
+        Lot createdLot = CAPTOR.getValue();
 
         assertEquals(lot.getPriceStart(), createdLot.getPrice());
         assertEquals(

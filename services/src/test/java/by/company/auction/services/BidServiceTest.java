@@ -1,30 +1,29 @@
 package by.company.auction.services;
 
+import by.company.auction.AbstractTest;
+import by.company.auction.common.exceptions.NotFoundException;
+import by.company.auction.common.security.Authentication;
 import by.company.auction.dao.BidDao;
 import by.company.auction.model.Bid;
 import by.company.auction.model.Lot;
-import by.company.auction.secuirty.Authentication;
 import by.company.auction.validators.BidValidator;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-import static by.company.auction.secuirty.AuthenticatonConfig.authentication;
+import static by.company.auction.common.security.AuthenticationConfig.authentication;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-public class BidServiceTest extends AbstractService {
+public class BidServiceTest extends AbstractTest {
 
     private Bid newBid;
     private Bid topBid;
@@ -161,7 +160,7 @@ public class BidServiceTest extends AbstractService {
     @PrepareForTest({BidService.class, BidValidator.class, BidDao.class, LotService.class, MessageService.class, Authentication.class})
     public void findBidsByLotId() {
 
-        when(lotService.findById(anyInt())).thenReturn(lot);
+        when(lotService.exists(anyInt())).thenReturn(true);
         when(bidDao.findBidsByLotId(anyInt())).thenReturn(bids);
 
         List<Bid> receivedBids = bidService.findBidsByLotId(lot.getId());
@@ -169,12 +168,11 @@ public class BidServiceTest extends AbstractService {
         assertFalse(receivedBids.isEmpty());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = NotFoundException.class)
     @PrepareForTest({BidService.class, BidValidator.class, BidDao.class, LotService.class, MessageService.class, Authentication.class})
     public void findBidsByLotIdWhileLotIsAbsent() {
 
         when(lotService.findById(anyInt())).thenReturn(null);
-        when(bidDao.findBidsByLotId(anyInt())).thenReturn(bids);
 
         List<Bid> receivedBids = bidService.findBidsByLotId(lot.getId());
     }

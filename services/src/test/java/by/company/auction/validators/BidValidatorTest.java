@@ -1,17 +1,16 @@
 package by.company.auction.validators;
 
-import by.company.auction.exceptions.AuctionException;
+import by.company.auction.AbstractTest;
+import by.company.auction.common.exceptions.BusinessException;
+import by.company.auction.common.exceptions.NotFoundException;
 import by.company.auction.model.Bid;
 import by.company.auction.model.Lot;
-import by.company.auction.services.AbstractService;
 import by.company.auction.services.BidService;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -20,8 +19,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-public class BidValidatorTest extends AbstractService {
+public class BidValidatorTest extends AbstractTest {
 
     private BidService bidService;
     private BidValidator bidValidator;
@@ -56,7 +54,7 @@ public class BidValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = BusinessException.class)
     @PrepareForTest({BidService.class, BidValidator.class})
     public void validateBidValueFailure() {
 
@@ -74,7 +72,7 @@ public class BidValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = BusinessException.class)
     @PrepareForTest({BidService.class, BidValidator.class})
     public void validateTopBidFailure() {
 
@@ -93,7 +91,7 @@ public class BidValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = BusinessException.class)
     @PrepareForTest({BidService.class, BidValidator.class})
     public void validateLotClosingDateFailure() {
 
@@ -110,7 +108,7 @@ public class BidValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = NotFoundException.class)
     @PrepareForTest({BidService.class, BidValidator.class})
     public void validateLotExistenceFailure() {
 

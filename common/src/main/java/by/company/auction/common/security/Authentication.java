@@ -1,4 +1,4 @@
-package by.company.auction.secuirty;
+package by.company.auction.common.security;
 
 import by.company.auction.model.Role;
 import by.company.auction.model.User;

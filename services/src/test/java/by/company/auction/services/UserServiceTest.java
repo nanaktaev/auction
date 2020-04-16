@@ -1,25 +1,25 @@
 package by.company.auction.services;
 
+import by.company.auction.AbstractTest;
+import by.company.auction.common.exceptions.NotFoundException;
 import by.company.auction.dao.UserDao;
 import by.company.auction.model.Role;
 import by.company.auction.model.User;
 import by.company.auction.validators.UserValidator;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-public class UserServiceTest extends AbstractService {
+public class UserServiceTest extends AbstractTest {
 
     private User user;
     private User newUser;
@@ -128,13 +128,11 @@ public class UserServiceTest extends AbstractService {
         assertEquals("VENDOR", updatedUser.getRole().name());
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = NotFoundException.class)
     @PrepareForTest({UserService.class, UserValidator.class, UserDao.class, TownService.class})
     public void updateUserRoleWhileCompanyIsAbsent() {
 
         when(companyService.exists(anyInt())).thenReturn(false);
-        when(userService.findById(anyInt())).thenReturn(user);
-        when(userService.update(user)).thenReturn(user);
 
         User updatedUser = userService.updateUserRole(user.getId(), "VENDOR", 1);
 

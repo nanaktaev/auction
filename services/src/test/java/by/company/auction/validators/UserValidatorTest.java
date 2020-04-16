@@ -1,23 +1,20 @@
 package by.company.auction.validators;
 
-import by.company.auction.exceptions.AuctionException;
+import by.company.auction.AbstractTest;
+import by.company.auction.common.exceptions.AlreadyExistsException;
 import by.company.auction.model.User;
-import by.company.auction.services.AbstractService;
 import by.company.auction.services.UserService;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-public class UserValidatorTest extends AbstractService {
+public class UserValidatorTest extends AbstractTest {
 
     private UserService userService;
     private UserValidator userValidator;
@@ -50,7 +47,7 @@ public class UserValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = AlreadyExistsException.class)
     @PrepareForTest({UserService.class, UserValidator.class})
     public void validateEmailExists() {
 
@@ -61,7 +58,7 @@ public class UserValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = AlreadyExistsException.class)
     @PrepareForTest({UserService.class, UserValidator.class})
     public void validateUsernameExists() {
 

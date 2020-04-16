@@ -6,6 +6,8 @@ import by.company.auction.model.Bid;
 import by.company.auction.model.Lot;
 import by.company.auction.model.Message;
 import by.company.auction.model.MessageType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,21 +16,28 @@ import java.util.List;
 public class MessageService extends AbstractService<Message, MessageDao> {
 
     private static MessageService messageServiceInstance;
-
-    private MessageService() {
-    }
+    private final Logger LOGGER = LogManager.getLogger(MessageService.class);
 
     @SuppressWarnings("WeakerAccess")
     public List<Message> findOutcomeMessagesByUserId(Integer userId) {
+
+        LOGGER.debug("findOutcomeMessagesByUserId() userId = {}", userId);
         return dao.findOutcomeMessagesByUserId(userId);
+
     }
 
     public List<Message> findMessagesByUserId(Integer userId) {
+
+        LOGGER.debug("findMessagesByUserId() userId = {}", userId);
         return dao.findMessagesByUserId(userId);
+
     }
 
     @SuppressWarnings("WeakerAccess")
     public void createOutcomeMessage(LocalDateTime time, Integer userId, Integer lotId, boolean userLeading) {
+
+        LOGGER.debug("createOutcomeMessage() time = {}, userId = {}, lotId = {}, userLeading = {}",
+                time, userId, lotId, userLeading);
 
         Message message = new Message();
         message.setTime(time);
@@ -47,6 +56,8 @@ public class MessageService extends AbstractService<Message, MessageDao> {
 
     void createWarningMessage(Integer userId, Bid bid) {
 
+        LOGGER.debug("createWarningMessage() userId = {}, bid = {}", userId, bid);
+
         Message message = new Message();
         message.setTime(bid.getTime());
         message.setType(MessageType.WARNING);
@@ -58,6 +69,9 @@ public class MessageService extends AbstractService<Message, MessageDao> {
     }
 
     public void prepareUserMessages(Integer userId) {
+
+        LOGGER.debug("prepareUserMessages() userId = {}", userId);
+
         List<Message> userOutcomeMessages = findOutcomeMessagesByUserId(userId);
         List<Lot> expiredUserLots = LotService.getInstance().findExpiredLotsByUserId(userId);
         List<Integer> checkedLotIds = new ArrayList<>();

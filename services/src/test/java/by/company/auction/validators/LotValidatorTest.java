@@ -1,19 +1,18 @@
 package by.company.auction.validators;
 
-import by.company.auction.exceptions.AuctionException;
+import by.company.auction.AbstractTest;
+import by.company.auction.common.exceptions.BusinessException;
+import by.company.auction.common.exceptions.NotFoundException;
 import by.company.auction.model.Category;
 import by.company.auction.model.Lot;
 import by.company.auction.model.Town;
-import by.company.auction.services.AbstractService;
 import by.company.auction.services.CategoryService;
 import by.company.auction.services.TownService;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,8 +21,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-public class LotValidatorTest extends AbstractService {
+public class LotValidatorTest extends AbstractTest {
 
     private CategoryService categoryService;
     private TownService townService;
@@ -59,7 +57,7 @@ public class LotValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = BusinessException.class)
     @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateClosingDateFailure() {
 
@@ -77,7 +75,7 @@ public class LotValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = BusinessException.class)
     @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateStepFailure() {
 
@@ -95,7 +93,7 @@ public class LotValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = BusinessException.class)
     @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateStartPriceFailure() {
 
@@ -112,7 +110,7 @@ public class LotValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = BusinessException.class)
     @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateOwnershipFailure() {
 
@@ -132,7 +130,7 @@ public class LotValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = NotFoundException.class)
     @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateCategoryFailure() {
 
@@ -154,7 +152,7 @@ public class LotValidatorTest extends AbstractService {
 
     }
 
-    @Test(expected = AuctionException.class)
+    @Test(expected = NotFoundException.class)
     @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateTownFailure() {
 

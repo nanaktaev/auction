@@ -1,5 +1,6 @@
 package by.company.auction.services;
 
+import by.company.auction.AbstractTest;
 import by.company.auction.dao.MessageDao;
 import by.company.auction.model.Bid;
 import by.company.auction.model.Lot;
@@ -7,15 +8,12 @@ import by.company.auction.model.Message;
 import by.company.auction.model.MessageType;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,8 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-public class MessageServiceTest extends AbstractService {
+public class MessageServiceTest extends AbstractTest {
 
     private Message message;
     private List<Message> messages;
@@ -122,11 +119,11 @@ public class MessageServiceTest extends AbstractService {
     @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void createOutcomeMessageWhileUserIsLeading() {
 
-        final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        final ArgumentCaptor<Message> CAPTOR = ArgumentCaptor.forClass(Message.class);
 
         messageService.createOutcomeMessage(LocalDateTime.now(), 1, 33, true);
-        verify(messageDao).create(captor.capture());
-        Message createdMessage = captor.getValue();
+        verify(messageDao).create(CAPTOR.capture());
+        Message createdMessage = CAPTOR.getValue();
 
         assertEquals("Вы выиграли торги по лоту №33!", createdMessage.getText());
 
@@ -136,11 +133,11 @@ public class MessageServiceTest extends AbstractService {
     @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void createOutcomeMessageWhileUserIsLosing() {
 
-        final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        final ArgumentCaptor<Message> CAPTOR = ArgumentCaptor.forClass(Message.class);
 
         messageService.createOutcomeMessage(LocalDateTime.now(), 1, 33, false);
-        verify(messageDao).create(captor.capture());
-        Message createdMessage = captor.getValue();
+        verify(messageDao).create(CAPTOR.capture());
+        Message createdMessage = CAPTOR.getValue();
 
         assertEquals("Вы проиграли торги по лоту №33.", createdMessage.getText());
 
@@ -150,11 +147,11 @@ public class MessageServiceTest extends AbstractService {
     @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void createWarningMessage() {
 
-        final ArgumentCaptor<Message> captor = ArgumentCaptor.forClass(Message.class);
+        final ArgumentCaptor<Message> CAPTOR = ArgumentCaptor.forClass(Message.class);
 
         messageService.createWarningMessage(1, bid);
-        verify(messageDao).create(captor.capture());
-        Message createdMessage = captor.getValue();
+        verify(messageDao).create(CAPTOR.capture());
+        Message createdMessage = CAPTOR.getValue();
 
         assertEquals("Ваша ставка по лоту №33 была перебита!", createdMessage.getText());
 

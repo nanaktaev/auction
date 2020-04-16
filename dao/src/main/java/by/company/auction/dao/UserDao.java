@@ -1,5 +1,6 @@
 package by.company.auction.dao;
 
+import by.company.auction.common.exceptions.DataAccessException;
 import by.company.auction.model.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,12 +11,8 @@ import java.sql.SQLException;
 
 public class UserDao extends AbstractDao<User> {
 
-    private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
-    private static UserDao userDaoInstance;
-    private static final Logger logger = LogManager.getLogger(UserDao.class);
-
-    private UserDao() {
-    }
+    private final ConnectionProvider CONNECTION_PROVIDER = ConnectionProvider.getInstance();
+    private final Logger LOGGER = LogManager.getLogger(UserDao.class);
 
     @Override
     protected Class<User> getEntityClass() {
@@ -27,7 +24,7 @@ public class UserDao extends AbstractDao<User> {
 
         Integer userId = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "INSERT INTO users (email, password, username, role, company_id) VALUES (?, ?, ?, ?, ?) RETURNING id")) {
             preparedStatement.setString(1, user.getEmail());
             preparedStatement.setString(2, user.getPassword());
@@ -43,8 +40,8 @@ public class UserDao extends AbstractDao<User> {
             resultSet.close();
 
         } catch (SQLException e) {
-            logger.error("Failed to create a user.", e);
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return findById(userId);
     }
@@ -52,7 +49,7 @@ public class UserDao extends AbstractDao<User> {
     @Override
     public User update(User user) {
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "UPDATE users SET email = ?, password = ?, username = ?, role = ?, company_id = ? WHERE (id = ?)")) {
             preparedStatement.setString(1, user.getEmail());
             preparedStatement.setString(2, user.getPassword());
@@ -63,8 +60,8 @@ public class UserDao extends AbstractDao<User> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            logger.error("Failed to update a user.", e);
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return user;
     }
@@ -73,7 +70,7 @@ public class UserDao extends AbstractDao<User> {
 
         User user = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM users WHERE email = ?")) {
             preparedStatement.setString(1, email);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -84,8 +81,8 @@ public class UserDao extends AbstractDao<User> {
             resultSet.close();
 
         } catch (Exception e) {
-            logger.error("Failed to find a user by Email.", e);
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return user;
     }
@@ -94,7 +91,7 @@ public class UserDao extends AbstractDao<User> {
 
         User user = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM users WHERE username = ?")) {
             preparedStatement.setString(1, username);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -105,11 +102,13 @@ public class UserDao extends AbstractDao<User> {
             resultSet.close();
 
         } catch (Exception e) {
-            logger.error("Failed to find a user by username.", e);
-            System.out.println(e.getMessage());
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return user;
     }
+
+    private static UserDao userDaoInstance;
 
     public static UserDao getInstance() {
         if (userDaoInstance != null) {

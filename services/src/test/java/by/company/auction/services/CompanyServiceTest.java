@@ -1,22 +1,20 @@
 package by.company.auction.services;
 
+import by.company.auction.AbstractTest;
 import by.company.auction.dao.CompanyDao;
 import by.company.auction.model.Company;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-public class CompanyServiceTest extends AbstractService {
+public class CompanyServiceTest extends AbstractTest {
 
     private Company company;
     private CompanyService companyService;
