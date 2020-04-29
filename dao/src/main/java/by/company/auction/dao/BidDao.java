@@ -1,6 +1,9 @@
 package by.company.auction.dao;
 
+import by.company.auction.common.exceptions.DataAccessException;
 import by.company.auction.model.Bid;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,11 +13,8 @@ import java.util.List;
 
 public class BidDao extends AbstractDao<Bid> {
 
-    private static BidDao bidDaoInstance;
-    private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
-
-    private BidDao() {
-    }
+    private final ConnectionProvider CONNECTION_PROVIDER = ConnectionProvider.getInstance();
+    private final Logger LOGGER = LogManager.getLogger(BidDao.class);
 
     @Override
     protected Class<Bid> getEntityClass() {
@@ -26,7 +26,7 @@ public class BidDao extends AbstractDao<Bid> {
 
         Integer bidId = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "INSERT INTO bids (value, time, lot_id, user_id) VALUES (?, ?, ?, ?) RETURNING id")) {
             preparedStatement.setBigDecimal(1, bid.getValue());
             preparedStatement.setTimestamp(2, java.sql.Timestamp.valueOf(bid.getTime()));
@@ -41,7 +41,8 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return findById(bidId);
     }
@@ -49,7 +50,7 @@ public class BidDao extends AbstractDao<Bid> {
     @Override
     public Bid update(Bid bid) {
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "UPDATE bids SET value = ?, time = ?, lot_id = ?, user_id = ? WHERE (id = ?)")) {
             preparedStatement.setBigDecimal(1, bid.getValue());
             preparedStatement.setTimestamp(2, java.sql.Timestamp.valueOf(bid.getTime()));
@@ -59,7 +60,8 @@ public class BidDao extends AbstractDao<Bid> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return bid;
     }
@@ -68,7 +70,7 @@ public class BidDao extends AbstractDao<Bid> {
 
         Bid topBid = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM bids WHERE value = (SELECT MAX(value) FROM bids WHERE lot_id = ?)")) {
             preparedStatement.setInt(1, lotId);
 
@@ -79,7 +81,8 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return topBid;
     }
@@ -88,7 +91,7 @@ public class BidDao extends AbstractDao<Bid> {
 
         List<Bid> bids = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM bids WHERE lot_id = ?")) {
             preparedStatement.setInt(1, lotId);
 
@@ -99,7 +102,8 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return bids;
     }
@@ -108,7 +112,7 @@ public class BidDao extends AbstractDao<Bid> {
 
         List<Bid> bids = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM bids WHERE user_id = ?")) {
             preparedStatement.setInt(1, userId);
 
@@ -119,10 +123,13 @@ public class BidDao extends AbstractDao<Bid> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return bids;
     }
+
+    private static BidDao bidDaoInstance;
 
     public static BidDao getInstance() {
         if (bidDaoInstance != null) {

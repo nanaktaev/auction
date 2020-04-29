@@ -1,6 +1,9 @@
 package by.company.auction.dao;
 
+import by.company.auction.common.exceptions.DataAccessException;
 import by.company.auction.model.Category;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,11 +11,8 @@ import java.sql.SQLException;
 
 public class CategoryDao extends AbstractDao<Category> {
 
-    private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
-    private static CategoryDao categoryDaoInstance;
-
-    private CategoryDao() {
-    }
+    private final ConnectionProvider CONNECTION_PROVIDER = ConnectionProvider.getInstance();
+    private final Logger LOGGER = LogManager.getLogger(CategoryDao.class);
 
     @Override
     protected Class<Category> getEntityClass() {
@@ -24,7 +24,7 @@ public class CategoryDao extends AbstractDao<Category> {
 
         Integer categoryId = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "INSERT INTO categories (name) VALUES (?) RETURNING id")) {
             preparedStatement.setString(1, category.getName());
             preparedStatement.execute();
@@ -36,7 +36,8 @@ public class CategoryDao extends AbstractDao<Category> {
             resultSet.close();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return findById(categoryId);
     }
@@ -44,14 +45,15 @@ public class CategoryDao extends AbstractDao<Category> {
     @Override
     public Category update(Category category) {
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "UPDATE categories SET name = ? WHERE (id = ?)")) {
             preparedStatement.setString(1, category.getName());
             preparedStatement.setInt(2, category.getId());
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return category;
     }
@@ -60,7 +62,7 @@ public class CategoryDao extends AbstractDao<Category> {
 
         Category category = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM categories WHERE name = ?")) {
             preparedStatement.setString(1, name);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -71,10 +73,13 @@ public class CategoryDao extends AbstractDao<Category> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return category;
     }
+
+    private static CategoryDao categoryDaoInstance;
 
     public static CategoryDao getInstance() {
         if (categoryDaoInstance != null) {

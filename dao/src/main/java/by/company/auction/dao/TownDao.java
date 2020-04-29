@@ -1,6 +1,9 @@
 package by.company.auction.dao;
 
+import by.company.auction.common.exceptions.DataAccessException;
 import by.company.auction.model.Town;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,11 +11,8 @@ import java.sql.SQLException;
 
 public class TownDao extends AbstractDao<Town> {
 
-    private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
-    private static TownDao townDaoInstance;
-
-    private TownDao() {
-    }
+    private final ConnectionProvider CONNECTION_PROVIDER = ConnectionProvider.getInstance();
+    private final Logger LOGGER = LogManager.getLogger(TownDao.class);
 
     @Override
     protected Class<Town> getEntityClass() {
@@ -24,7 +24,7 @@ public class TownDao extends AbstractDao<Town> {
 
         Integer townId = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "INSERT INTO towns (name) VALUES (?) RETURNING id")) {
             preparedStatement.setString(1, town.getName());
             preparedStatement.execute();
@@ -36,7 +36,8 @@ public class TownDao extends AbstractDao<Town> {
             resultSet.close();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return findById(townId);
     }
@@ -44,14 +45,15 @@ public class TownDao extends AbstractDao<Town> {
     @Override
     public Town update(Town town) {
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "UPDATE towns SET name = ? WHERE (id = ?)")) {
             preparedStatement.setString(1, town.getName());
             preparedStatement.setInt(2, town.getId());
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return town;
     }
@@ -60,7 +62,7 @@ public class TownDao extends AbstractDao<Town> {
 
         Town town = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM towns WHERE name = ?")) {
             preparedStatement.setString(1, name);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -71,10 +73,13 @@ public class TownDao extends AbstractDao<Town> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return town;
     }
+
+    private static TownDao townDaoInstance;
 
     public static TownDao getInstance() {
         if (townDaoInstance != null) {

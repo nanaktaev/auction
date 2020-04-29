@@ -1,6 +1,9 @@
 package by.company.auction.dao;
 
+import by.company.auction.common.exceptions.DataAccessException;
 import by.company.auction.model.Message;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,11 +13,8 @@ import java.util.List;
 
 public class MessageDao extends AbstractDao<Message> {
 
-    private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
-    private static MessageDao messageDaoInstance;
-
-    private MessageDao() {
-    }
+    private final ConnectionProvider CONNECTION_PROVIDER = ConnectionProvider.getInstance();
+    private final Logger LOGGER = LogManager.getLogger(MessageDao.class);
 
     @Override
     protected Class<Message> getEntityClass() {
@@ -26,7 +26,7 @@ public class MessageDao extends AbstractDao<Message> {
 
         Integer messageId = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "INSERT INTO messages (text, time, type, lot_id, user_id) VALUES (?, ?, ?, ?, ?) RETURNING id")) {
             preparedStatement.setString(1, message.getText());
             preparedStatement.setTimestamp(2, java.sql.Timestamp.valueOf(message.getTime()));
@@ -42,7 +42,8 @@ public class MessageDao extends AbstractDao<Message> {
             resultSet.close();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return findById(messageId);
     }
@@ -50,7 +51,7 @@ public class MessageDao extends AbstractDao<Message> {
     @Override
     public Message update(Message message) {
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "UPDATE messages SET text = ?, time = ?, type = ?, lot_id = ?, user_id = ? WHERE (id = ?)")) {
             preparedStatement.setString(1, message.getText());
             preparedStatement.setTimestamp(2, java.sql.Timestamp.valueOf(message.getTime()));
@@ -61,7 +62,8 @@ public class MessageDao extends AbstractDao<Message> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
 
         return message;
@@ -71,7 +73,7 @@ public class MessageDao extends AbstractDao<Message> {
 
         List<Message> messages = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM messages WHERE user_id = ?")) {
             preparedStatement.setInt(1, userId);
 
@@ -82,7 +84,8 @@ public class MessageDao extends AbstractDao<Message> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return messages;
     }
@@ -91,7 +94,7 @@ public class MessageDao extends AbstractDao<Message> {
 
         List<Message> messages = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM messages WHERE user_id = ? AND type = 'OUTCOME'")) {
             preparedStatement.setInt(1, userId);
 
@@ -102,10 +105,13 @@ public class MessageDao extends AbstractDao<Message> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return messages;
     }
+
+    private static MessageDao messageDaoInstance;
 
     public static MessageDao getInstance() {
         if (messageDaoInstance != null) {

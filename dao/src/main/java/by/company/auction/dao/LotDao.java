@@ -1,6 +1,9 @@
 package by.company.auction.dao;
 
+import by.company.auction.common.exceptions.DataAccessException;
 import by.company.auction.model.Lot;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,11 +13,8 @@ import java.util.List;
 
 public class LotDao extends AbstractDao<Lot> {
 
-    private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
-    private static LotDao lotDaoInstance;
-
-    private LotDao() {
-    }
+    private final ConnectionProvider CONNECTION_PROVIDER = ConnectionProvider.getInstance();
+    private final Logger LOGGER = LogManager.getLogger(LotDao.class);
 
     @Override
     protected Class<Lot> getEntityClass() {
@@ -26,7 +26,7 @@ public class LotDao extends AbstractDao<Lot> {
 
         Integer lotId = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "INSERT INTO lots (title, description, price, price_start, step," +
                         " opened, closes, category_id, company_id, town_id)" +
                         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id")) {
@@ -49,7 +49,8 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return findById(lotId);
     }
@@ -57,7 +58,7 @@ public class LotDao extends AbstractDao<Lot> {
     @Override
     public Lot update(Lot lot) {
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "UPDATE lots SET title = ?, description = ?, price =?, price_start = ?, step = ?," +
                         " opened = ?, closes = ?, category_id = ?, company_id = ?, town_id = ? WHERE (id = ?)")) {
             preparedStatement.setString(1, lot.getTitle());
@@ -74,7 +75,8 @@ public class LotDao extends AbstractDao<Lot> {
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return lot;
     }
@@ -83,7 +85,7 @@ public class LotDao extends AbstractDao<Lot> {
 
         List<Lot> lots = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM lots WHERE town_id = ?")) {
             preparedStatement.setInt(1, townId);
 
@@ -94,7 +96,8 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return lots;
     }
@@ -103,7 +106,7 @@ public class LotDao extends AbstractDao<Lot> {
 
         List<Lot> lots = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM lots WHERE category_id = ?")) {
             preparedStatement.setInt(1, categoryId);
 
@@ -114,7 +117,8 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return lots;
     }
@@ -123,7 +127,7 @@ public class LotDao extends AbstractDao<Lot> {
 
         List<Lot> lots = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT lots.* FROM lots LEFT JOIN bids ON lots.id = bids.lot_id " +
                         "WHERE bids.user_id = ? GROUP BY lots.id")) {
             preparedStatement.setInt(1, userId);
@@ -135,7 +139,8 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return lots;
     }
@@ -144,7 +149,7 @@ public class LotDao extends AbstractDao<Lot> {
 
         List<Lot> lots = new ArrayList<>();
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT lots.* FROM lots LEFT JOIN bids ON lots.id = bids.lot_id " +
                         "WHERE bids.user_id = ? AND lots.closes < NOW() GROUP BY lots.id")) {
             preparedStatement.setInt(1, userId);
@@ -156,10 +161,13 @@ public class LotDao extends AbstractDao<Lot> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return lots;
     }
+
+    private static LotDao lotDaoInstance;
 
     public static LotDao getInstance() {
         if (lotDaoInstance != null) {

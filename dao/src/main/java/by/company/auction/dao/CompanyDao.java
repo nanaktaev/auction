@@ -1,6 +1,9 @@
 package by.company.auction.dao;
 
+import by.company.auction.common.exceptions.DataAccessException;
 import by.company.auction.model.Company;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,11 +11,8 @@ import java.sql.SQLException;
 
 public class CompanyDao extends AbstractDao<Company> {
 
-    private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
-    private static CompanyDao companyDaoInstance;
-
-    private CompanyDao() {
-    }
+    private final ConnectionProvider CONNECTION_PROVIDER = ConnectionProvider.getInstance();
+    private final Logger LOGGER = LogManager.getLogger(CompanyDao.class);
 
     @Override
     protected Class<Company> getEntityClass() {
@@ -24,7 +24,7 @@ public class CompanyDao extends AbstractDao<Company> {
 
         Integer companyId = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "INSERT INTO companies (name) VALUES (?) RETURNING id")) {
             preparedStatement.setString(1, company.getName());
             preparedStatement.execute();
@@ -36,7 +36,8 @@ public class CompanyDao extends AbstractDao<Company> {
             resultSet.close();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return findById(companyId);
     }
@@ -44,14 +45,15 @@ public class CompanyDao extends AbstractDao<Company> {
     @Override
     public Company update(Company company) {
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "UPDATE companies SET name = ? WHERE (id = ?)")) {
             preparedStatement.setString(1, company.getName());
             preparedStatement.setInt(2, company.getId());
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return company;
     }
@@ -60,7 +62,7 @@ public class CompanyDao extends AbstractDao<Company> {
 
         Company company = null;
 
-        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+        try (PreparedStatement preparedStatement = CONNECTION_PROVIDER.getConnection().prepareStatement(
                 "SELECT * FROM companies WHERE name = ?")) {
             preparedStatement.setString(1, name);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -71,10 +73,13 @@ public class CompanyDao extends AbstractDao<Company> {
             resultSet.close();
 
         } catch (Exception e) {
-            throw new IllegalStateException();
+            LOGGER.error(e);
+            throw new DataAccessException();
         }
         return company;
     }
+
+    private static CompanyDao companyDaoInstance;
 
     public static CompanyDao getInstance() {
         if (companyDaoInstance != null) {

@@ -1,6 +1,7 @@
 package by.company.auction.console.menu;
 
-import by.company.auction.exceptions.AuctionException;
+import by.company.auction.common.exceptions.AlreadyExistsException;
+import by.company.auction.common.exceptions.NotFoundException;
 import by.company.auction.model.*;
 import by.company.auction.services.*;
 import by.company.auction.validators.LotValidator;
@@ -11,18 +12,19 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import static by.company.auction.common.security.AuthenticationConfig.authentication;
 import static by.company.auction.console.menu.MenuConfig.*;
-import static by.company.auction.secuirty.AuthenticatonConfig.authentication;
 
 class CommandConfig {
 
-    private static final UserService userService = UserService.getInstance();
-    private static final CategoryService categoryService = CategoryService.getInstance();
-    private static final LotService lotService = LotService.getInstance();
-    private static final BidService bidService = BidService.getInstance();
-    private static final TownService townService = TownService.getInstance();
-    private static final CompanyService companyService = CompanyService.getInstance();
-    private static final MessageService messageService = MessageService.getInstance();
+    private static UserService userService = UserService.getInstance();
+    private static CategoryService categoryService = CategoryService.getInstance();
+    private static LotService lotService = LotService.getInstance();
+    private static BidService bidService = BidService.getInstance();
+    private static TownService townService = TownService.getInstance();
+    private static CompanyService companyService = CompanyService.getInstance();
+    private static MessageService messageService = MessageService.getInstance();
+    private static LotValidator lotValidator = LotValidator.getInstance();
 
     private static Lot editedLot = null;
 
@@ -39,7 +41,7 @@ class CommandConfig {
             MenuUtil.getMainMenuByRole(role).open();
             MenuUtil.readCommand(MenuUtil.getMainMenuByRole(role));
         } else {
-            throw new AuctionException("Введенные данные не верны.");
+            throw new NotFoundException("Введенные данные не верны.");
         }
         return null;
     });
@@ -60,7 +62,7 @@ class CommandConfig {
     static final Command VIEW_ALL_LOTS_COMMAND = new Command("all", "посмотреть все лоты.", () -> {
         List<Lot> lots = lotService.findAll();
         if (lots.isEmpty()) {
-            throw new AuctionException("Пока что аукцион пуст.");
+            throw new NotFoundException("Пока что аукцион пуст.");
         }
 
         System.out.println("Все лоты:");
@@ -78,7 +80,7 @@ class CommandConfig {
 
         System.out.println("Ставки на лоте №" + lotId + ":");
         if (bids.isEmpty()) {
-            throw new AuctionException("Пока что на этом лоте нет ставок.");
+            throw new NotFoundException("Пока что на этом лоте нет ставок.");
         } else {
             Collections.reverse(bids);
             bids.forEach(System.out::println);
@@ -93,7 +95,7 @@ class CommandConfig {
         List<Town> towns = townService.findAll();
 
         if (towns.isEmpty()) {
-            throw new AuctionException("Пока не было зарегистрировано ни одного города.");
+            throw new NotFoundException("Пока не было зарегистрировано ни одного города.");
         }
 
         System.out.println("Доступные города:");
@@ -104,7 +106,7 @@ class CommandConfig {
         List<Lot> lots = lotService.findLotsByTownId(townId);
 
         if (lots.isEmpty()) {
-            throw new AuctionException("Пока что в этом городе нет лотов.");
+            throw new NotFoundException("Пока что в этом городе нет лотов.");
         } else {
             lots.forEach(System.out::println);
         }
@@ -118,7 +120,7 @@ class CommandConfig {
         List<Category> categories = categoryService.findAll();
 
         if (categories.isEmpty()) {
-            throw new AuctionException("Пока не было зарегистрировано ни одной категории.");
+            throw new NotFoundException("Пока не было зарегистрировано ни одной категории.");
         }
 
         System.out.println("Доступные категории:");
@@ -129,7 +131,7 @@ class CommandConfig {
         List<Lot> lots = lotService.findLotsByCategoryId(categoryId);
 
         if (lots.isEmpty()) {
-            throw new AuctionException("Пока что в этой категории нет лотов.");
+            throw new NotFoundException("Пока что в этой категории нет лотов.");
         } else {
             lots.forEach(System.out::println);
         }
@@ -143,7 +145,7 @@ class CommandConfig {
         Integer userId = Integer.parseInt(MenuUtil.readNumericValue("Введите id пользователя:"));
         User user = userService.findById(userId);
         if (user == null) {
-            throw new AuctionException("По данному id пользователь не найден.");
+            throw new NotFoundException("По данному id пользователь не найден.");
         }
         System.out.println(user + "\n");
 
@@ -152,7 +154,7 @@ class CommandConfig {
         Integer companyId = null;
         if (roleString.equals("VENDOR")) {
             if (companyService.findAll().isEmpty()) {
-                throw new AuctionException("Прежде чем назначать роль VENDOR необходимо зарегистрировать хотя бы одну компанию.");
+                throw new NotFoundException("Прежде чем назначать роль VENDOR необходимо зарегистрировать хотя бы одну компанию.");
             }
             System.out.println("Доступные компании:");
             companyService.findAll().forEach(System.out::println);
@@ -170,7 +172,7 @@ class CommandConfig {
     static final Command CREATE_LOT_COMMAND = new Command("clot", "создать новый лот.", () -> {
 
         if (categoryService.findAll().isEmpty() || townService.findAll().isEmpty()) {
-            throw new AuctionException("Ошибка. Администратору необходимо добавить хотя бы одну категорию и один город," +
+            throw new NotFoundException("Ошибка. Администратору необходимо добавить хотя бы одну категорию и один город," +
                     " прежде чем появится возможность добавлять лоты.");
         }
 
@@ -211,7 +213,7 @@ class CommandConfig {
 
         String name = StringUtils.capitalize(MenuUtil.readStringValue("Введите название города:").toLowerCase());
         if (!(townService.findTownByName(name) == null)) {
-            throw new AuctionException("Данный город уже был добавлен.");
+            throw new AlreadyExistsException("Данный город уже был добавлен.");
         }
 
         Town town = new Town();
@@ -227,7 +229,7 @@ class CommandConfig {
 
         String name = StringUtils.capitalize(MenuUtil.readStringValue("Введите название категории:").toLowerCase());
         if (!(categoryService.findCategoryByName(name) == null)) {
-            throw new AuctionException("Данная категория уже существует.");
+            throw new AlreadyExistsException("Данная категория уже существует.");
         }
 
         Category category = new Category();
@@ -243,7 +245,7 @@ class CommandConfig {
 
         String name = MenuUtil.readStringValue("Введите название компании:");
         if (!(companyService.findCompanyByName(name) == null)) {
-            throw new AuctionException("Данная компания уже зарегистрирована.");
+            throw new AlreadyExistsException("Данная компания уже зарегистрирована.");
         }
 
         Company company = new Company();
@@ -263,11 +265,11 @@ class CommandConfig {
         editedLot = lotService.findById(lotId);
 
         if (lotService.findById(lotId) == null) {
-            throw new AuctionException("По данному id лот не найден.");
+            throw new NotFoundException("По данному id лот не найден.");
         }
 
         if (role.equals(Role.VENDOR)) {
-            LotValidator.validateOwnership(editedLot, authentication.getUserCompanyId());
+            lotValidator.validateOwnership(editedLot, authentication.getUserCompanyId());
         }
 
         System.out.println("Редактируемый лот:\n" + editedLot);
@@ -300,7 +302,7 @@ class CommandConfig {
     static final Command EDIT_STEP_COMMAND = new Command("step", "изменить минимальный шаг.", () -> {
         editedLot.setStep(new BigDecimal((MenuUtil.readNumericValue("Введите минимальный шаг цены лота:"))));
 
-        LotValidator.validateStep(editedLot);
+        lotValidator.validateStep(editedLot);
         lotService.update(editedLot);
 
         System.out.println("Шаг изменен.\n");
@@ -311,7 +313,7 @@ class CommandConfig {
     static final Command EDIT_CLOSES_COMMAND = new Command("close", "изменить дату окончания торгов.", () -> {
         editedLot.setCloses(MenuUtil.readDateTimeValue("Введите дату и время окончания торгов.\nКорректный формат: гггг-ММ-дд ЧЧ:мм\nПример: 2020-07-21 16:30"));
 
-        LotValidator.validateClosingDate(editedLot);
+        lotValidator.validateClosingDate(editedLot);
         lotService.update(editedLot);
 
         System.out.println("Дата оконачания торгов изменена.\n");
@@ -325,7 +327,7 @@ class CommandConfig {
 
         editedLot.setCategoryId(Integer.parseInt(MenuUtil.readNumericValue("\nВведите id категории лота:")));
 
-        LotValidator.validateCategory(editedLot);
+        lotValidator.validateCategory(editedLot);
         lotService.update(editedLot);
 
         System.out.println("Категория изменена.\n");
@@ -339,7 +341,7 @@ class CommandConfig {
 
         editedLot.setTownId(Integer.parseInt(MenuUtil.readNumericValue("\nВведите id города, где находится лот:")));
 
-        LotValidator.validateTown(editedLot);
+        lotValidator.validateTown(editedLot);
         lotService.update(editedLot);
 
         System.out.println("Город изменен.\n");

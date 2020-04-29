@@ -1,6 +1,8 @@
 package by.company.auction.console.menu;
 
-import by.company.auction.exceptions.AuctionException;
+import by.company.auction.common.exceptions.AuctionException;
+import by.company.auction.common.exceptions.BusinessException;
+import by.company.auction.common.exceptions.DataAccessException;
 import by.company.auction.model.Role;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -8,7 +10,6 @@ import org.apache.commons.validator.routines.EmailValidator;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import java.util.Scanner;
 
 import static by.company.auction.console.menu.MenuConfig.*;
@@ -17,35 +18,35 @@ public class MenuUtil {
 
     private static Scanner scanner = new Scanner(System.in);
 
+    @SuppressWarnings("InfiniteRecursion")
     public static void readCommand(Menu menu) {
+
         String commandName = scanner.nextLine();
 
-        Optional<Command> calledCommand = menu.getCommands().stream()
+        menu.getCommands().stream()
                 .filter(command -> command.getName().equals(commandName))
-                .findFirst();
-
-        if (calledCommand.isPresent()) {
+                .findFirst().ifPresent(command -> {
             try {
-                calledCommand.get().run();
+                command.run();
             } catch (AuctionException e) {
                 System.out.println(e.getMessage() + '\n');
                 readCommand(menu);
-            } catch (IllegalStateException e) {
+            } catch (DataAccessException e) {
                 System.out.println("Произошел сбой при взаимодействии с сервером. Не удалось выполнить операцию." + '\n');
                 readCommand(menu);
             }
-            return;
-        }
+        });
 
         System.out.println("Введена несуществующая команда.\n");
         readCommand(menu);
+
     }
 
     static String readStringValue(String valueMessage) {
         System.out.println(valueMessage);
         String value = scanner.nextLine();
         if ("cancel".equals(value)) {
-            throw new AuctionException("Действие отменено.");
+            throw new BusinessException("Действие отменено.");
         }
         if (StringUtils.isBlank(value)) {
             System.out.println("Ошибка. Введена пустая строка.\nДля отмены ввода введите cancel.\n");
