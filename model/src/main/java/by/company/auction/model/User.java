@@ -1,50 +1,50 @@
 package by.company.auction.model;
 
-import java.util.List;
+import by.company.auction.annotaitions.TableName;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+@TableName("users")
 public class User extends BaseEntity {
+
     private String email;
     private String password;
     private String username;
     private Role role;
-
     private Integer companyId;
-    private List<Integer> bidIds;
-    private List<Integer> messageIds;
-    private List<Integer> lotIds;
 
-    public User(String email, String password, String username) {
-        this.email = email;
-        this.password = password;
-        this.username = username;
-    }
+    @Override
+    public User buildFromResultSet(ResultSet resultSet) throws SQLException {
 
-    public User() {
+        User user = new User();
+        user.setId(resultSet.getInt(1));
+        user.setEmail(resultSet.getString(2));
+        user.setPassword(resultSet.getString(3));
+        user.setUsername(resultSet.getString(4));
+        user.setRole(Role.valueOf(resultSet.getString(5)));
+        user.setCompanyId(resultSet.getInt(6));
+
+        return user;
     }
 
     @Override
     public String toString() {
-        return "Пользователь №" + super.toString() +
+        return "Пользователь №" + super.getId() +
                 ":\nemail - " + email +
                 ", пароль - " + password +
                 "\nимя - " + username +
                 ", роль - " + role +
                 "\nid компании - " + companyId +
-                "\nid ставок - " + bidIds +
-                "\nid сообщений - " + messageIds +
-                "\nid лотов - " + lotIds +
                 '.';
     }
 
-    public User(String email, String password, String username, Role role, Integer companyId, List<Integer> bidIds, List<Integer> messageIds, List<Integer> lotIds) {
-        this.email = email;
-        this.password = password;
-        this.username = username;
-        this.role = role;
-        this.companyId = companyId;
-        this.bidIds = bidIds;
-        this.messageIds = messageIds;
-        this.lotIds = lotIds;
+    public Integer getId() {
+        return super.getId();
+    }
+
+    public void setId(Integer id) {
+        super.setId(id);
     }
 
     public String getEmail() {
@@ -87,27 +87,4 @@ public class User extends BaseEntity {
         this.companyId = companyId;
     }
 
-    public List<Integer> getBidIds() {
-        return bidIds;
-    }
-
-    public void setBidIds(List<Integer> bidIds) {
-        this.bidIds = bidIds;
-    }
-
-    public List<Integer> getMessageIds() {
-        return messageIds;
-    }
-
-    public void setMessageIds(List<Integer> messageIds) {
-        this.messageIds = messageIds;
-    }
-
-    public List<Integer> getLotIds() {
-        return lotIds;
-    }
-
-    public void setLotIds(List<Integer> lotIds) {
-        this.lotIds = lotIds;
-    }
 }

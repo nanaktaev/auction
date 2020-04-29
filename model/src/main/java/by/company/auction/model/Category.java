@@ -1,25 +1,36 @@
 package by.company.auction.model;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import by.company.auction.annotaitions.TableName;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+@TableName("categories")
 public class Category extends BaseEntity {
+
     private String name;
 
-    private List<Integer> lotIds;
+    @Override
+    public Category buildFromResultSet(ResultSet resultSet) throws SQLException {
+
+        Category category = new Category();
+        category.setId(resultSet.getInt(1));
+        category.setName(resultSet.getString(2));
+
+        return category;
+    }
 
     @Override
     public String toString() {
-        return super.toString() + ". " + name;
+        return super.getId() + ". " + name;
     }
 
-    public Category() {
+    public Integer getId() {
+        return super.getId();
     }
 
-    public Category(String name, Integer... lotIds) {
-        this.name = name;
-        this.lotIds = new LinkedList<>(Arrays.asList(lotIds));
+    public void setId(Integer id) {
+        super.setId(id);
     }
 
     public String getName() {
@@ -30,11 +41,4 @@ public class Category extends BaseEntity {
         this.name = name;
     }
 
-    public List<Integer> getLotIds() {
-        return lotIds;
-    }
-
-    public void setLotIds(List<Integer> lotIds) {
-        this.lotIds = lotIds;
-    }
 }

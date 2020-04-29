@@ -10,8 +10,8 @@ public class CategoryService extends AbstractService<Category, CategoryDao> {
     private CategoryService() {
     }
 
-    public Category findByName(String name) {
-        return dao.findByName(name);
+    public Category findCategoryByName(String name) {
+        return dao.findCategoryByName(name);
     }
 
     public static CategoryService getInstance() {

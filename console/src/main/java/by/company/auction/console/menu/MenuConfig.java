@@ -1,7 +1,7 @@
 package by.company.auction.console.menu;
 
 import static by.company.auction.console.menu.CommandConfig.*;
-import static by.company.auction.console.menu.HeaderContainer.WELCOME_MENU_HEADER;
+import static by.company.auction.console.menu.HeaderConfig.WELCOME_MENU_HEADER;
 
 public class MenuConfig {
 
