@@ -1,11 +1,16 @@
 package by.company.auction.model;
 
+import by.company.auction.annotaitions.TableName;
+
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
+@TableName("lots")
 public class Lot extends BaseEntity {
+
     private String title;
     private String description;
     private BigDecimal price;
@@ -13,12 +18,9 @@ public class Lot extends BaseEntity {
     private BigDecimal step;
     private LocalDateTime opened;
     private LocalDateTime closes;
-
     private Integer categoryId;
-    private Integer vendorId;
+    private Integer companyId;
     private Integer townId;
-    private List<Integer> bidIds;
-    private List<Integer> userIds;
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(closes);
@@ -32,37 +34,28 @@ public class Lot extends BaseEntity {
         return value.compareTo(price.add(step)) >= 0;
     }
 
-    public Lot() {
-    }
+    @Override
+    public Lot buildFromResultSet(ResultSet resultSet) throws SQLException {
 
-    public Lot(String title, String description, BigDecimal price, BigDecimal priceStart, BigDecimal step, LocalDateTime opened, LocalDateTime closes, Integer categoryId, Integer vendorId, Integer townId, List<Integer> bidIds, List<Integer> userIds) {
-        this.title = title;
-        this.description = description;
-        this.price = price;
-        this.priceStart = priceStart;
-        this.step = step;
-        this.opened = opened;
-        this.closes = closes;
-        this.categoryId = categoryId;
-        this.vendorId = vendorId;
-        this.townId = townId;
-        this.bidIds = bidIds;
-        this.userIds = userIds;
-    }
+        Lot lot = new Lot();
+        lot.setId(resultSet.getInt(1));
+        lot.setTitle(resultSet.getString(2));
+        lot.setDescription(resultSet.getString(3));
+        lot.setPrice(resultSet.getBigDecimal(4));
+        lot.setPriceStart(resultSet.getBigDecimal(5));
+        lot.setStep(resultSet.getBigDecimal(6));
+        lot.setOpened(resultSet.getTimestamp(7).toLocalDateTime());
+        lot.setCloses(resultSet.getTimestamp(8).toLocalDateTime());
+        lot.setCategoryId(resultSet.getInt(9));
+        lot.setCompanyId(resultSet.getInt(10));
+        lot.setTownId(resultSet.getInt(11));
 
-    public Lot(String title, String description, BigDecimal priceStart, BigDecimal step, LocalDateTime closes, Integer categoryId, Integer townId) {
-        this.title = title;
-        this.description = description;
-        this.priceStart = priceStart;
-        this.step = step;
-        this.closes = closes;
-        this.categoryId = categoryId;
-        this.townId = townId;
+        return lot;
     }
 
     @Override
     public String toString() {
-        return "Лот №" + super.toString() +
+        return "Лот №" + super.getId() +
                 " - " + title +
                 ":\n" + description +
                 "\nЦена - " + price +
@@ -71,10 +64,17 @@ public class Lot extends BaseEntity {
                 "\nОкончание торгов - " + closes.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) +
                 ", начало торгов - " + opened.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) +
                 "\nid категории - " + categoryId +
-                ", id продавца - " + vendorId +
+                ", id компании - " + companyId +
                 ", id города - " + townId +
-                "\nid ставок - " + bidIds +
-                "\nid пользователей - " + userIds + "\n";
+                ".\n";
+    }
+
+    public Integer getId() {
+        return super.getId();
+    }
+
+    public void setId(Integer id) {
+        super.setId(id);
     }
 
     public String getTitle() {
@@ -141,12 +141,12 @@ public class Lot extends BaseEntity {
         this.categoryId = categoryId;
     }
 
-    public int getVendorId() {
-        return vendorId;
+    public int getCompanyId() {
+        return companyId;
     }
 
-    public void setVendorId(int vendorId) {
-        this.vendorId = vendorId;
+    public void setCompanyId(int companyId) {
+        this.companyId = companyId;
     }
 
     public Integer getTownId() {
@@ -157,19 +157,4 @@ public class Lot extends BaseEntity {
         this.townId = townId;
     }
 
-    public List<Integer> getBidIds() {
-        return bidIds;
-    }
-
-    public void setBidIds(List<Integer> bidIds) {
-        this.bidIds = bidIds;
-    }
-
-    public List<Integer> getUserIds() {
-        return userIds;
-    }
-
-    public void setUserIds(List<Integer> userIds) {
-        this.userIds = userIds;
-    }
 }

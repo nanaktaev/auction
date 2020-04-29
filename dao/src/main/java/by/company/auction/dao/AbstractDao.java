@@ -1,70 +1,80 @@
 package by.company.auction.dao;
 
+import by.company.auction.annotaitions.TableName;
 import by.company.auction.model.BaseEntity;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public abstract class AbstractDao<T extends BaseEntity> {
 
-    private final Map<Integer, T> entitiesMap;
-    private final Class<T> tClass;
+    private static final ConnectionProvider connectionProvider = ConnectionProvider.getInstance();
 
-    AbstractDao(Class<T> tClass) {
-        this.entitiesMap = FileAccessor.getEntitiesMap(tClass);
-        this.tClass = tClass;
+    private final Class<T> tClass = getEntityClass();
+    private final String tableName = tClass.getAnnotation(TableName.class).value();
+
+    AbstractDao() {
     }
 
-    private int generateNewId() {
-        int maxId = 0;
-        for (int id : entitiesMap.keySet()) {
-            if (id > maxId) {
-                maxId = id;
-            }
-        }
-        return maxId + 1;
-    }
-
-    public T create(T entity) {
-        entity.setId(generateNewId());
-        entitiesMap.put(entity.getId(), entity);
-
-        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
-        return entity;
-    }
+    protected abstract Class<T> getEntityClass();
 
     @SuppressWarnings("WeakerAccess")
     public T findById(Integer id) {
-        return entitiesMap.get(id);
-    }
 
-    public T update(T entity) {
-        if (entity.getId() == null) {
-            throw new IllegalStateException("Объект по данному id не найден.");
+        T entity = null;
+
+        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+                "SELECT * FROM " + tableName + " WHERE id = ?")) {
+            preparedStatement.setInt(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                entity = ((T) tClass.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet));
+            }
+            resultSet.close();
+
+        } catch (Exception e) {
+            throw new IllegalStateException();
         }
-        entitiesMap.put(entity.getId(), entity);
-
-        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
         return entity;
     }
 
-    public List<T> findByIds(List<Integer> ids) {
+    public void delete(Integer id) {
+
+        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+                "DELETE FROM " + tableName + " WHERE id = ?")) {
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new IllegalStateException();
+        }
+    }
+
+    public List<T> findAll() {
+
         List<T> entities = new ArrayList<>();
-        for (Integer id : ids) {
-            entities.add(findById(id));
+
+        try (PreparedStatement preparedStatement = connectionProvider.getConnection().prepareStatement(
+                "SELECT * FROM " + tableName)) {
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                entities.add((T) tClass.getDeclaredConstructor().newInstance().buildFromResultSet(resultSet));
+            }
+            resultSet.close();
+
+        } catch (Exception e) {
+            throw new IllegalStateException();
         }
         return entities;
     }
 
-    public void delete(Integer id) {
-        entitiesMap.remove(id);
-        FileAccessor.saveEntitiesMap(entitiesMap, tClass);
-    }
+    public abstract T create(T entity);
 
-    @SuppressWarnings("WeakerAccess")
-    public List<T> findAll() {
-        return new ArrayList<T>(entitiesMap.values());
-    }
+    public abstract T update(T entity);
 
 }

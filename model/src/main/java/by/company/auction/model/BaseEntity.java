@@ -1,7 +1,13 @@
 package by.company.auction.model;
 
-public class BaseEntity {
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public abstract class BaseEntity {
+
     private Integer id;
+
+    public abstract <T extends BaseEntity> T buildFromResultSet(ResultSet resultSet) throws SQLException;
 
     public Integer getId() {
         return id;
@@ -11,8 +17,4 @@ public class BaseEntity {
         this.id = id;
     }
 
-    @Override
-    public String toString() {
-        return id.toString();
-    }
 }

@@ -27,29 +27,40 @@ public class MessageService extends AbstractService<Message, MessageDao> {
     }
 
     private void createOutcomeMessage(LocalDateTime time, Integer userId, Integer lotId, boolean userLeading) {
-        Message message = new Message(time, MessageType.OUTCOME, userId, lotId);
+
+        Message message = new Message();
+        message.setTime(time);
+        message.setType(MessageType.OUTCOME);
+        message.setUserId(userId);
+        message.setLotId(lotId);
+
         if (userLeading) {
             message.setText("Вы выиграли торги по лоту №" + lotId + "!");
         } else {
             message.setText("Вы проиграли торги по лоту №" + lotId + ".");
         }
+
         create(message);
     }
 
     void createWarningMessage(Integer userId, Bid bid) {
-        create(new Message("Ваша ставка по лоту №" + bid.getLotId() + " была перебита!",
-                bid.getTime(), MessageType.WARNING, userId, bid.getLotId()));
+
+        Message message = new Message();
+        message.setTime(bid.getTime());
+        message.setType(MessageType.WARNING);
+        message.setUserId(userId);
+        message.setLotId(bid.getLotId());
+        message.setText("Ваша ставка по лоту №" + bid.getLotId() + " была перебита!");
+
+        create(message);
     }
 
     public void prepareUserMessages(Integer userId) {
         List<Message> userOutcomeMessages = findOutcomeMessagesByUserId(userId);
+        List<Lot> expiredUserLots = LotService.getInstance().findExpiredLotsByUserId(userId);
         List<Integer> checkedLotIds = new ArrayList<>();
 
-        for (Message message : userOutcomeMessages) {
-            checkedLotIds.add(message.getLotId());
-        }
-
-        List<Lot> expiredUserLots = LotService.getInstance().findExpiredLotsByUserId(userId);
+        userOutcomeMessages.forEach(message -> checkedLotIds.add(message.getLotId()));
 
         for (Integer checkedLotId : checkedLotIds) {
             expiredUserLots.removeIf(obj -> obj.getId().equals(checkedLotId));
@@ -57,7 +68,7 @@ public class MessageService extends AbstractService<Message, MessageDao> {
 
         if (!expiredUserLots.isEmpty()) {
             for (Lot lot : expiredUserLots) {
-                if (BidService.getInstance().isUserLeading(lot, userId)) {
+                if (BidService.getInstance().isUserLeading(lot.getId(), userId)) {
                     createOutcomeMessage(lot.getCloses(), userId, lot.getId(), true);
                 } else {
                     createOutcomeMessage(lot.getCloses(), userId, lot.getId(), false);

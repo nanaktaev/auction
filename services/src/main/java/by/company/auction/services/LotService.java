@@ -1,14 +1,10 @@
 package by.company.auction.services;
 
 import by.company.auction.dao.LotDao;
-import by.company.auction.model.Category;
 import by.company.auction.model.Lot;
-import by.company.auction.model.Town;
-import by.company.auction.model.User;
 import by.company.auction.validators.LotValidator;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 import static by.company.auction.secuirty.AuthenticatonConfig.authentication;
@@ -41,42 +37,11 @@ public class LotService extends AbstractService<Lot, LotDao> {
 
         LotValidator.validate(lot);
 
-        lot.setVendorId(userId);
+        lot.setCompanyId(UserService.getInstance().findById(userId).getCompanyId());
         lot.setOpened(LocalDateTime.now());
         lot.setPrice(lot.getPriceStart());
-        lot.setUserIds(new ArrayList<>());
-        lot.setBidIds(new ArrayList<>());
-        create(lot);
 
-        return lot;
-    }
-
-    public void deleteLot(Lot lot) {
-
-        CategoryService categoryService = CategoryService.getInstance();
-        TownService townService = TownService.getInstance();
-        UserService userService = UserService.getInstance();
-
-        List<Integer> bidIds = new ArrayList<>(lot.getBidIds());
-        for (Integer bidId : bidIds) {
-            BidService.getInstance().deleteBid(bidId);
-        }
-
-        for (Integer userId : lot.getUserIds()) {
-            User user = userService.findById(userId);
-            user.getLotIds().removeIf(lot.getId()::equals);
-            userService.update(user);
-        }
-
-        Category category = categoryService.findById(lot.getCategoryId());
-        category.getLotIds().removeIf(lot.getId()::equals);
-        categoryService.update(category);
-
-        Town town = townService.findById(lot.getTownId());
-        town.getLotIds().removeIf(lot.getId()::equals);
-        townService.update(town);
-
-        dao.delete(lot.getId());
+        return create(lot);
     }
 
     public static LotService getInstance() {

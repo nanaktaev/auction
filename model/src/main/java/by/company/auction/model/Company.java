@@ -1,25 +1,36 @@
 package by.company.auction.model;
 
+import by.company.auction.annotaitions.TableName;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+@TableName("companies")
 public class Company extends BaseEntity {
+
     private String name;
 
-    private Integer vendorId;
+    @Override
+    public Company buildFromResultSet(ResultSet resultSet) throws SQLException {
+
+        Company company = new Company();
+        company.setId(resultSet.getInt(1));
+        company.setName(resultSet.getString(2));
+
+        return company;
+    }
 
     @Override
     public String toString() {
-        return super.toString() + ". " + name;
+        return super.getId() + ". " + name;
     }
 
-    public Company() {
+    public Integer getId() {
+        return super.getId();
     }
 
-    public Company(String name) {
-        this.name = name;
-    }
-
-    public Company(String name, Integer vendorId) {
-        this.name = name;
-        this.vendorId = vendorId;
+    public void setId(Integer id) {
+        super.setId(id);
     }
 
     public String getName() {
@@ -30,11 +41,4 @@ public class Company extends BaseEntity {
         this.name = name;
     }
 
-    public Integer getVendorId() {
-        return vendorId;
-    }
-
-    public void setVendorId(Integer vendorId) {
-        this.vendorId = vendorId;
-    }
 }

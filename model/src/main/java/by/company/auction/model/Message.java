@@ -1,37 +1,46 @@
 package by.company.auction.model;
 
+import by.company.auction.annotaitions.TableName;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@TableName("messages")
 public class Message extends BaseEntity {
+
     private String text;
     private LocalDateTime time;
     private MessageType type;
-
     private Integer userId;
     private Integer lotId;
+
+    @Override
+    public Message buildFromResultSet(ResultSet resultSet) throws SQLException {
+
+        Message message = new Message();
+        message.setId(resultSet.getInt(1));
+        message.setText(resultSet.getString(2));
+        message.setTime(resultSet.getTimestamp(3).toLocalDateTime());
+        message.setType(MessageType.valueOf(resultSet.getString(4)));
+        message.setLotId(resultSet.getInt(5));
+        message.setUserId(resultSet.getInt(6));
+
+        return message;
+    }
 
     @Override
     public String toString() {
         return time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) + " - " + text;
     }
 
-    public Message() {
+    public Integer getId() {
+        return super.getId();
     }
 
-    public Message(String text, LocalDateTime time, MessageType type, Integer userId, Integer lotId) {
-        this.text = text;
-        this.time = time;
-        this.type = type;
-        this.userId = userId;
-        this.lotId = lotId;
-    }
-
-    public Message(LocalDateTime time, MessageType type, Integer userId, Integer lotId) {
-        this.time = time;
-        this.type = type;
-        this.userId = userId;
-        this.lotId = lotId;
+    public void setId(Integer id) {
+        super.setId(id);
     }
 
     public String getText() {
@@ -73,4 +82,5 @@ public class Message extends BaseEntity {
     public void setLotId(Integer lotId) {
         this.lotId = lotId;
     }
+
 }

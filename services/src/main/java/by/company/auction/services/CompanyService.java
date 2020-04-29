@@ -10,8 +10,8 @@ public class CompanyService extends AbstractService<Company, CompanyDao> {
     private CompanyService() {
     }
 
-    public Company findByName(String name) {
-        return dao.findByName(name);
+    public Company findCompanyByName(String name) {
+        return dao.findCompanyByName(name);
     }
 
     public static CompanyService getInstance() {

@@ -14,9 +14,7 @@ public class Menu {
 
     public void open() {
         System.out.println(header);
-        for (Command command : commands) {
-            System.out.println(command);
-        }
+        commands.forEach(System.out::println);
         System.out.println();
     }
 

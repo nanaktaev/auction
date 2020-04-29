@@ -5,19 +5,18 @@ import java.util.function.Supplier;
 public class Command {
     private String name;
     private String description;
-    private Supplier action;
+    private Supplier performedAction;
 
 
-    Command(String name, String description, Supplier action) {
+    Command(String name, String description, Supplier performedAction) {
         this.name = name;
         this.description = description;
-        this.action = action;
+        this.performedAction = performedAction;
     }
 
     void run() {
-        action.get();
+        performedAction.get();
     }
-
 
     @Override
     public String toString() {
@@ -41,11 +40,11 @@ public class Command {
         this.description = description;
     }
 
-    public Supplier getAction() {
-        return action;
+    public Supplier getPerformedAction() {
+        return performedAction;
     }
 
-    public void setAction(Supplier action) {
-        this.action = action;
+    public void setPerformedAction(Supplier performedAction) {
+        this.performedAction = performedAction;
     }
 }
