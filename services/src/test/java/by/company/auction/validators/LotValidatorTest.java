@@ -2,54 +2,53 @@ package by.company.auction.validators;
 
 import by.company.auction.AbstractTest;
 import by.company.auction.common.exceptions.BusinessException;
-import by.company.auction.common.exceptions.NotFoundException;
+import by.company.auction.common.exceptions.NoSuchEntityException;
 import by.company.auction.model.Category;
+import by.company.auction.model.Company;
 import by.company.auction.model.Lot;
 import by.company.auction.model.Town;
 import by.company.auction.services.CategoryService;
 import by.company.auction.services.TownService;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LotValidatorTest extends AbstractTest {
 
+    @Mock
     private CategoryService categoryService;
+    @Mock
     private TownService townService;
+    @InjectMocks
     private LotValidator lotValidator;
-    private Lot lot;
 
-    @Before
-    public void beforeEachTest() {
+    private static Lot lot;
 
-        PowerMockito.mockStatic(CategoryService.class);
-        PowerMockito.when(CategoryService.getInstance()).thenReturn(mock(CategoryService.class));
-        PowerMockito.mockStatic(TownService.class);
-        PowerMockito.when(TownService.getInstance()).thenReturn(mock(TownService.class));
-        MockitoAnnotations.initMocks(this);
+    @BeforeClass
+    public static void beforeAllTests() {
 
-        categoryService = CategoryService.getInstance();
-        townService = TownService.getInstance();
-        lotValidator = LotValidator.getInstance();
+        Company company = new Company();
+        Category category = new Category();
+        Town town = new Town();
+
+        company.setId(1);
+        category.setId(1);
+        town.setId(1);
 
         lot = new Lot();
-        lot.setCompanyId(1);
-        lot.setCategoryId(1);
-        lot.setTownId(1);
+        lot.setCompany(company);
+        lot.setCategory(category);
+        lot.setTown(town);
 
     }
 
     @Test
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateClosingDateSuccess() {
 
         lot.setCloses(LocalDateTime.now().plusHours(1));
@@ -58,7 +57,6 @@ public class LotValidatorTest extends AbstractTest {
     }
 
     @Test(expected = BusinessException.class)
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateClosingDateFailure() {
 
         lot.setCloses(LocalDateTime.now());
@@ -67,7 +65,6 @@ public class LotValidatorTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateStepSuccess() {
 
         lot.setStep(new BigDecimal(10));
@@ -76,7 +73,6 @@ public class LotValidatorTest extends AbstractTest {
     }
 
     @Test(expected = BusinessException.class)
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateStepFailure() {
 
         lot.setStep(new BigDecimal(0));
@@ -85,7 +81,6 @@ public class LotValidatorTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateStartPriceSuccess() {
 
         lot.setPriceStart(new BigDecimal(100));
@@ -94,7 +89,6 @@ public class LotValidatorTest extends AbstractTest {
     }
 
     @Test(expected = BusinessException.class)
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateStartPriceFailure() {
 
         lot.setPriceStart(new BigDecimal(0));
@@ -103,7 +97,6 @@ public class LotValidatorTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateOwnershipSuccess() {
 
         lotValidator.validateOwnership(lot, 1);
@@ -111,7 +104,6 @@ public class LotValidatorTest extends AbstractTest {
     }
 
     @Test(expected = BusinessException.class)
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateOwnershipFailure() {
 
         lotValidator.validateOwnership(lot, 2);
@@ -119,44 +111,36 @@ public class LotValidatorTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateCategorySuccess() {
 
-        Category category = new Category();
-
-        when(categoryService.findById(anyInt())).thenReturn(category);
+        when(categoryService.exists(1)).thenReturn(true);
 
         lotValidator.validateCategory(lot);
 
     }
 
-    @Test(expected = NotFoundException.class)
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
+    @Test(expected = NoSuchEntityException.class)
     public void validateCategoryFailure() {
 
-        when(categoryService.findById(anyInt())).thenReturn(null);
+        when(categoryService.exists(1)).thenReturn(false);
 
         lotValidator.validateCategory(lot);
 
     }
 
     @Test
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
     public void validateTownSuccess() {
 
-        Town town = new Town();
-
-        when(townService.findById(anyInt())).thenReturn(town);
+        when(townService.exists(1)).thenReturn(true);
 
         lotValidator.validateTown(lot);
 
     }
 
-    @Test(expected = NotFoundException.class)
-    @PrepareForTest({CategoryService.class, TownService.class, LotValidator.class})
+    @Test(expected = NoSuchEntityException.class)
     public void validateTownFailure() {
 
-        when(townService.findById(anyInt())).thenReturn(null);
+        when(townService.exists(1)).thenReturn(false);
 
         lotValidator.validateTown(lot);
 

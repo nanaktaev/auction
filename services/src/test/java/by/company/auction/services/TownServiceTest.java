@@ -1,34 +1,27 @@
 package by.company.auction.services;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.dao.TownDao;
 import by.company.auction.model.Town;
+import by.company.auction.repository.TownRepository;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 public class TownServiceTest extends AbstractTest {
 
-    private Town town;
+    @Mock
+    private TownRepository townRepository;
+    @InjectMocks
     private TownService townService;
-    private TownDao townDao;
+
+    private Town town;
 
     @Before
     public void beforeEachTest() {
-
-        PowerMockito.mockStatic(TownDao.class);
-        PowerMockito.when(TownDao.getInstance()).thenReturn(mock(TownDao.class));
-        MockitoAnnotations.initMocks(this);
-
-        townDao = TownDao.getInstance();
-        townService = TownService.getInstance();
 
         town = new Town();
         town.setName("Минск");
@@ -36,12 +29,11 @@ public class TownServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({TownService.class, TownDao.class})
     public void findTownByName() {
 
-        when(townDao.findTownByName(anyString())).thenReturn(town);
+        when(townRepository.findTownByName("Минск")).thenReturn(town);
 
-        Town receivedTown = townService.findTownByName(anyString());
+        Town receivedTown = townService.findTownByName("Минск");
 
         assertNotNull(receivedTown);
 

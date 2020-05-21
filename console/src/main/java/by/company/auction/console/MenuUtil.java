@@ -1,25 +1,28 @@
-package by.company.auction.console.menu;
+package by.company.auction.console;
 
 import by.company.auction.common.exceptions.AuctionException;
 import by.company.auction.common.exceptions.BusinessException;
-import by.company.auction.common.exceptions.DataAccessException;
 import by.company.auction.model.Role;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
-import static by.company.auction.console.menu.MenuConfig.*;
-
+@Component
 public class MenuUtil {
+
+    @Autowired
+    private MenuConfig menuConfig;
 
     private static Scanner scanner = new Scanner(System.in);
 
     @SuppressWarnings("InfiniteRecursion")
-    public static void readCommand(Menu menu) {
+    public void readCommand(Menu menu) {
 
         String commandName = scanner.nextLine();
 
@@ -29,10 +32,7 @@ public class MenuUtil {
             try {
                 command.run();
             } catch (AuctionException e) {
-                System.out.println(e.getMessage() + '\n');
-                readCommand(menu);
-            } catch (DataAccessException e) {
-                System.out.println("Произошел сбой при взаимодействии с сервером. Не удалось выполнить операцию." + '\n');
+                System.out.println(e.getMessage());
                 readCommand(menu);
             }
         });
@@ -42,7 +42,7 @@ public class MenuUtil {
 
     }
 
-    static String readStringValue(String valueMessage) {
+    String readStringValue(String valueMessage) {
         System.out.println(valueMessage);
         String value = scanner.nextLine();
         if ("cancel".equals(value)) {
@@ -55,7 +55,7 @@ public class MenuUtil {
         return value;
     }
 
-    static String readNumericValue(String valueMessage) {
+    String readNumericValue(String valueMessage) {
         String value = readStringValue(valueMessage);
         if (!StringUtils.isNumeric(value)) {
             System.out.println("Ошибка. Введены символы, не являющиеся цифрами.\nДля отмены ввода введите cancel.\n");
@@ -64,7 +64,7 @@ public class MenuUtil {
         return value;
     }
 
-    static String readRoleValue(String valueMessage) {
+    String readRoleValue(String valueMessage) {
         String value = readStringValue(valueMessage);
         if (!EnumUtils.isValidEnum(Role.class, value.toUpperCase())) {
             System.out.println("Ошибка. Роль введена некорректно, доступные роли: USER, VENDOR, ADMIN.\nДля отмены ввода введите cancel.\n");
@@ -73,7 +73,7 @@ public class MenuUtil {
         return value.toUpperCase();
     }
 
-    static LocalDateTime readDateTimeValue(String valueMessage) {
+    LocalDateTime readDateTimeValue(String valueMessage) {
         String value = readStringValue(valueMessage);
         LocalDateTime dateTimeValue;
         try {
@@ -86,7 +86,7 @@ public class MenuUtil {
         return dateTimeValue;
     }
 
-    static String readEmailValue(String valueMessage) {
+    String readEmailValue(String valueMessage) {
         String value = readStringValue(valueMessage);
         if (!EmailValidator.getInstance().isValid(value)) {
             System.out.println("Ошибка. Email введен некорректно.\nДля отмены ввода введите cancel.\n");
@@ -95,7 +95,7 @@ public class MenuUtil {
         return value;
     }
 
-    static String readPasswordValue(String valueMessage) {
+    String readPasswordValue(String valueMessage) {
         String value = readStringValue(valueMessage);
         if (value.length() < 5) {
             System.out.println("Ошибка. Пароль должен быть не короче 5 символов.\nДля отмены ввода введите cancel.\n");
@@ -104,13 +104,13 @@ public class MenuUtil {
         return value;
     }
 
-    static Menu getMainMenuByRole(Role role) {
+    Menu getMainMenuByRole(Role role) {
         if (role.equals(Role.USER)) {
-            return MAIN_MENU;
+            return menuConfig.MAIN_MENU;
         } else if (role.equals(Role.VENDOR)) {
-            return MAIN_MENU_VENDOR;
+            return menuConfig.MAIN_MENU_VENDOR;
         } else {
-            return MAIN_MENU_ADMIN;
+            return menuConfig.MAIN_MENU_ADMIN;
         }
     }
 }

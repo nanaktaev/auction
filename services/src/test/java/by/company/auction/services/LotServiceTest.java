@@ -1,15 +1,15 @@
 package by.company.auction.services;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.dao.LotDao;
+import by.company.auction.model.Company;
 import by.company.auction.model.Lot;
+import by.company.auction.repository.LotRepository;
 import by.company.auction.validators.LotValidator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,32 +17,30 @@ import java.util.Collections;
 import java.util.List;
 
 import static by.company.auction.common.security.AuthenticationConfig.authentication;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 public class LotServiceTest extends AbstractTest {
 
     private Lot lot;
+    private Company company;
     private List<Lot> lots;
-    private LotService lotService;
-    private LotDao lotDao;
+
+    @Mock
+    private LotRepository lotRepository;
+    @Mock
     private LotValidator lotValidator;
+    @Mock
+    private CompanyService companyService;
+    @InjectMocks
+    private LotService lotService;
 
     @Before
     public void beforeEachTest() {
 
-        PowerMockito.mockStatic(LotDao.class);
-        PowerMockito.when(LotDao.getInstance()).thenReturn(mock(LotDao.class));
-        PowerMockito.mockStatic(LotValidator.class);
-        PowerMockito.when(LotValidator.getInstance()).thenReturn(mock(LotValidator.class));
-        MockitoAnnotations.initMocks(this);
-
-        lotDao = LotDao.getInstance();
-        lotService = LotService.getInstance();
-        lotValidator = LotValidator.getInstance();
+        company = new Company();
+        company.setId(1);
 
         lot = new Lot();
         lot.setId(1);
@@ -56,30 +54,29 @@ public class LotServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({LotService.class, LotDao.class, LotValidator.class})
     public void createLot() {
 
         final ArgumentCaptor<Lot> CAPTOR = ArgumentCaptor.forClass(Lot.class);
 
-        doNothing().when(lotValidator).validate(any(Lot.class));
+        when(companyService.findById(1)).thenReturn(company);
+        doNothing().when(lotValidator).validate(lot);
 
         lotService.createLot(lot);
-        verify(lotDao).create(CAPTOR.capture());
+        verify(lotRepository).save(CAPTOR.capture());
         Lot createdLot = CAPTOR.getValue();
 
         assertEquals(lot.getPriceStart(), createdLot.getPrice());
         assertEquals(
                 java.util.Optional.of(authentication.getUserCompanyId()),
-                java.util.Optional.of(createdLot.getCompanyId())
+                java.util.Optional.of(createdLot.getCompany().getId())
         );
 
     }
 
     @Test
-    @PrepareForTest({LotService.class, LotDao.class, LotValidator.class})
     public void findExpiredLotsByUserId() {
 
-        when(lotDao.findExpiredLotsByUserId(anyInt())).thenReturn(lots);
+        when(lotRepository.findExpiredLotsByUserId(anyInt())).thenReturn(lots);
 
         List<Lot> receivedLots = lotService.findExpiredLotsByUserId(1);
 
@@ -88,10 +85,9 @@ public class LotServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({LotService.class, LotDao.class, LotValidator.class})
     public void findLotsByUserId() {
 
-        when(lotDao.findLotsByUserId(anyInt())).thenReturn(lots);
+        when(lotRepository.findLotsByUserId(anyInt())).thenReturn(lots);
 
         List<Lot> receivedLots = lotService.findLotsByUserId(1);
 
@@ -100,10 +96,9 @@ public class LotServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({LotService.class, LotDao.class, LotValidator.class})
     public void findLotsByTownId() {
 
-        when(lotDao.findLotsByTownId(anyInt())).thenReturn(lots);
+        when(lotRepository.findLotsByTownId(anyInt())).thenReturn(lots);
 
         List<Lot> receivedLots = lotService.findLotsByTownId(1);
 
@@ -112,10 +107,9 @@ public class LotServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({LotService.class, LotDao.class, LotValidator.class})
     public void findLotsByCategoryId() {
 
-        when(lotDao.findLotsByCategoryId(anyInt())).thenReturn(lots);
+        when(lotRepository.findLotsByCategoryId(anyInt())).thenReturn(lots);
 
         List<Lot> receivedLots = lotService.findLotsByCategoryId(1);
 

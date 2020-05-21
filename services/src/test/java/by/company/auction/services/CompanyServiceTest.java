@@ -1,34 +1,27 @@
 package by.company.auction.services;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.dao.CompanyDao;
 import by.company.auction.model.Company;
+import by.company.auction.repository.CompanyRepository;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 public class CompanyServiceTest extends AbstractTest {
 
-    private Company company;
+    @Mock
+    private CompanyRepository companyRepository;
+    @InjectMocks
     private CompanyService companyService;
-    private CompanyDao companyDao;
+
+    private Company company;
 
     @Before
     public void beforeEachTest() {
-
-        PowerMockito.mockStatic(CompanyDao.class);
-        PowerMockito.when(CompanyDao.getInstance()).thenReturn(mock(CompanyDao.class));
-        MockitoAnnotations.initMocks(this);
-
-        companyDao = CompanyDao.getInstance();
-        companyService = CompanyService.getInstance();
 
         company = new Company();
         company.setName("Netcracker");
@@ -36,12 +29,11 @@ public class CompanyServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({CompanyService.class, CompanyDao.class})
     public void findCompanyByName() {
 
-        when(companyDao.findCompanyByName(anyString())).thenReturn(company);
+        when(companyRepository.findCompanyByName("Netcracker")).thenReturn(company);
 
-        Company receivedCompany = companyService.findCompanyByName(anyString());
+        Company receivedCompany = companyService.findCompanyByName("Netcracker");
 
         assertNotNull(receivedCompany);
 

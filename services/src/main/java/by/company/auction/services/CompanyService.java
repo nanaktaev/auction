@@ -1,28 +1,25 @@
 package by.company.auction.services;
 
-import by.company.auction.dao.CompanyDao;
 import by.company.auction.model.Company;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import by.company.auction.repository.CompanyRepository;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-public class CompanyService extends AbstractService<Company, CompanyDao> {
+@Log4j2
+@Service
+@Transactional
+public class CompanyService extends AbstractService<Company, CompanyRepository> {
 
-    private static CompanyService companyServiceInstance;
-    private final Logger LOGGER = LogManager.getLogger(CompanyService.class);
+    protected CompanyService(CompanyRepository repository) {
+        super(repository);
+    }
 
     public Company findCompanyByName(String name) {
 
-        LOGGER.debug("findCompanyByName() name = {}", name);
-        return dao.findCompanyByName(name);
+        log.debug("findCompanyByName() name = {}", name);
+        return repository.findCompanyByName(name);
 
     }
 
-    public static CompanyService getInstance() {
-        if (companyServiceInstance != null) {
-            return companyServiceInstance;
-        }
-        companyServiceInstance = new CompanyService();
-        companyServiceInstance.setDao(CompanyDao.getInstance());
-        return companyServiceInstance;
-    }
 }

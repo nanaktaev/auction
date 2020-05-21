@@ -1,47 +1,39 @@
 package by.company.auction.services;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.dao.CategoryDao;
 import by.company.auction.model.Category;
+import by.company.auction.repository.CategoryRepository;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 public class CategoryServiceTest extends AbstractTest {
 
-    private Category category;
+    @Mock
+    private CategoryRepository categoryRepository;
+    @InjectMocks
     private CategoryService categoryService;
-    private CategoryDao categoryDao;
+
+    private Category category;
 
     @Before
     public void beforeEachTest() {
 
-        PowerMockito.mockStatic(CategoryDao.class);
-        PowerMockito.when(CategoryDao.getInstance()).thenReturn(mock(CategoryDao.class));
-        MockitoAnnotations.initMocks(this);
-
-        categoryDao = CategoryDao.getInstance();
-        categoryService = CategoryService.getInstance();
-
         category = new Category();
-        category.setName("Netcracker");
+        category.setName("Immovables");
 
     }
 
     @Test
-    @PrepareForTest({CategoryService.class, CategoryDao.class})
     public void findCategoryByName() {
 
-        when(categoryDao.findCategoryByName(anyString())).thenReturn(category);
+        when(categoryRepository.findCategoryByName("Immovables")).thenReturn(category);
 
-        Category receivedCategory = categoryService.findCategoryByName(anyString());
+        Category receivedCategory = categoryService.findCategoryByName("Immovables");
 
         assertNotNull(receivedCategory);
 
