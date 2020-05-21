@@ -1,20 +1,23 @@
 package by.company.auction.validators;
 
 import by.company.auction.common.exceptions.AlreadyExistsException;
+import by.company.auction.common.exceptions.WrongCredentialsException;
 import by.company.auction.model.User;
 import by.company.auction.services.UserService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Log4j2
+@Component
 public class UserValidator {
 
-    private final Logger LOGGER = LogManager.getLogger(UserValidator.class);
+    @Autowired
+    private UserService userService;
 
     public void validate(User user) {
 
-        LOGGER.debug("validate() user = {}", user);
-
-        UserService userService = UserService.getInstance();
+        log.debug("validate() user = {}", user);
 
         if (userService.findUserByEmail(user.getEmail()) != null) {
             throw new AlreadyExistsException("Ошибка. Данная почта уже используется.");
@@ -24,14 +27,17 @@ public class UserValidator {
         }
     }
 
-    private static UserValidator userValidatorInstance;
+    public User validateLogin(String email, String password) {
 
-    public static UserValidator getInstance() {
-        if (userValidatorInstance != null) {
-            return userValidatorInstance;
+        log.debug("validateLogin() email = {}, password = {}", email, password);
+
+        User user = userService.findUserByEmail(email);
+
+        if (user == null || !user.getPassword().equals(password)) {
+            throw new WrongCredentialsException("Введенные данные не верны.");
         }
-        userValidatorInstance = new UserValidator();
-        return userValidatorInstance;
+
+        return user;
     }
 
 }

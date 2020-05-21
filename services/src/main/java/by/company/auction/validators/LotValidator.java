@@ -1,23 +1,29 @@
 package by.company.auction.validators;
 
 import by.company.auction.common.exceptions.BusinessException;
-import by.company.auction.common.exceptions.NotFoundException;
+import by.company.auction.common.exceptions.NoSuchEntityException;
 import by.company.auction.model.Lot;
 import by.company.auction.services.CategoryService;
 import by.company.auction.services.TownService;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Log4j2
+@Component
 public class LotValidator {
 
-    private final Logger LOGGER = LogManager.getLogger(LotValidator.class);
+    @Autowired
+    private TownService townService;
+    @Autowired
+    private CategoryService categoryService;
 
     public void validate(Lot lot) {
 
-        LOGGER.debug("validate() lot = {}", lot);
+        log.debug("validate() lot = {}", lot);
 
         validateStartPrice(lot);
         validateStep(lot);
@@ -27,14 +33,14 @@ public class LotValidator {
     }
 
     public void validateTown(Lot lot) {
-        if (TownService.getInstance().findById(lot.getTownId()) == null) {
-            throw new NotFoundException("Ошибка. Города с таким id не существует.");
+        if (!townService.exists(lot.getTown().getId())) {
+            throw new NoSuchEntityException("Ошибка. Города с таким id не существует.");
         }
     }
 
     public void validateCategory(Lot lot) {
-        if (CategoryService.getInstance().findById(lot.getCategoryId()) == null) {
-            throw new NotFoundException("Ошибка. Категории с таким id не существует.");
+        if (!categoryService.exists(lot.getCategory().getId())) {
+            throw new NoSuchEntityException("Ошибка. Категории с таким id не существует.");
         }
     }
 
@@ -58,22 +64,9 @@ public class LotValidator {
     }
 
     public void validateOwnership(Lot lot, Integer companyId) {
-        if (lot == null) {
-            throw new NotFoundException("Ошибка. Лота с таким id не существует.");
-        }
-        if (lot.getCompanyId() != companyId) {
+        if (!lot.getCompany().getId().equals(companyId)) {
             throw new BusinessException("Ошибка. Вы не можете редактировать чужой лот.");
         }
-    }
-
-    private static LotValidator lotValidatorInstance;
-
-    public static LotValidator getInstance() {
-        if (lotValidatorInstance != null) {
-            return lotValidatorInstance;
-        }
-        lotValidatorInstance = new LotValidator();
-        return lotValidatorInstance;
     }
 
 }

@@ -1,44 +1,30 @@
 package by.company.auction.model;
 
-import by.company.auction.annotaitions.TableName;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.persistence.Entity;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
 
-@TableName("companies")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "companies")
+@SequenceGenerator(name = "id_generator", sequenceName = "company_sequence")
+@EqualsAndHashCode(callSuper = true)
 public class Company extends BaseEntity {
 
+    @NotEmpty
     private String name;
 
     @Override
-    public Company buildFromResultSet(ResultSet resultSet) throws SQLException {
-
-        Company company = new Company();
-        company.setId(resultSet.getInt(1));
-        company.setName(resultSet.getString(2));
-
-        return company;
-    }
-
-    @Override
     public String toString() {
-        return super.getId() + ". " + name;
-    }
-
-    public Integer getId() {
-        return super.getId();
-    }
-
-    public void setId(Integer id) {
-        super.setId(id);
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+        return getId() + ". " + name;
     }
 
 }

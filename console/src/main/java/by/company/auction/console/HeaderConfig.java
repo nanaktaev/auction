@@ -1,7 +1,7 @@
-package by.company.auction.console.menu;
+package by.company.auction.console;
 
 class HeaderConfig {
-    final static String WELCOME_MENU_HEADER = """
+    static String WELCOME_MENU_HEADER = """
 
        ':.
          []_____

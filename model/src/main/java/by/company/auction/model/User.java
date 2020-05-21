@@ -1,90 +1,56 @@
 package by.company.auction.model;
 
-import by.company.auction.annotaitions.TableName;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.hibernate.validator.constraints.Length;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.persistence.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
-@TableName("users")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "users")
+@SequenceGenerator(name = "id_generator", sequenceName = "user_sequence")
+@EqualsAndHashCode(callSuper = true)
 public class User extends BaseEntity {
 
+    @NotEmpty
+    @Email
     private String email;
+
+    @NotEmpty
+    @Length(min = 5)
     private String password;
+
+    @NotEmpty
+    @Length(min = 5)
+    @Pattern(regexp = "[0-9a-zA-Z\u0400-\u04ff -]{3,30}")
     private String username;
+
+    @NotNull
+    @Enumerated(value = EnumType.STRING)
     private Role role;
-    private Integer companyId;
 
-    @Override
-    public User buildFromResultSet(ResultSet resultSet) throws SQLException {
-
-        User user = new User();
-        user.setId(resultSet.getInt(1));
-        user.setEmail(resultSet.getString(2));
-        user.setPassword(resultSet.getString(3));
-        user.setUsername(resultSet.getString(4));
-        user.setRole(Role.valueOf(resultSet.getString(5)));
-        user.setCompanyId(resultSet.getInt(6));
-
-        return user;
-    }
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    private Company company;
 
     @Override
     public String toString() {
-        return "Пользователь №" + super.getId() +
+        return "Пользователь №" + getId() +
                 ":\nemail - " + email +
                 ", пароль - " + password +
                 "\nимя - " + username +
                 ", роль - " + role +
-                "\nid компании - " + companyId +
-                '.';
-    }
-
-    public Integer getId() {
-        return super.getId();
-    }
-
-    public void setId(Integer id) {
-        super.setId(id);
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
-    }
-
-    public Integer getCompanyId() {
-        return companyId;
-    }
-
-    public void setCompanyId(Integer companyId) {
-        this.companyId = companyId;
+                "\nкомпания - " + company +
+                ".\n";
     }
 
 }

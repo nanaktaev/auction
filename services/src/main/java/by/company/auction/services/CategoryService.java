@@ -1,28 +1,25 @@
 package by.company.auction.services;
 
-import by.company.auction.dao.CategoryDao;
 import by.company.auction.model.Category;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import by.company.auction.repository.CategoryRepository;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-public class CategoryService extends AbstractService<Category, CategoryDao> {
+@Log4j2
+@Service
+@Transactional
+public class CategoryService extends AbstractService<Category, CategoryRepository> {
 
-    private static CategoryService categoryServiceInstance;
-    private final Logger LOGGER = LogManager.getLogger(CategoryService.class);
+    protected CategoryService(CategoryRepository repository) {
+        super(repository);
+    }
 
     public Category findCategoryByName(String name) {
 
-        LOGGER.debug("findCategoryByName() name = {}", name);
-        return dao.findCategoryByName(name);
+        log.debug("findCategoryByName() name = {}", name);
+        return repository.findCategoryByName(name);
 
     }
 
-    public static CategoryService getInstance() {
-        if (categoryServiceInstance != null) {
-            return categoryServiceInstance;
-        }
-        categoryServiceInstance = new CategoryService();
-        categoryServiceInstance.setDao(CategoryDao.getInstance());
-        return categoryServiceInstance;
-    }
 }

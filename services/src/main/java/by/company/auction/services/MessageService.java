@@ -1,49 +1,69 @@
 package by.company.auction.services;
 
-import by.company.auction.dao.MessageDao;
+import by.company.auction.common.exceptions.NotYetPopulatedException;
 import by.company.auction.model.Bid;
-
 import by.company.auction.model.Lot;
 import by.company.auction.model.Message;
 import by.company.auction.model.MessageType;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import by.company.auction.repository.MessageRepository;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MessageService extends AbstractService<Message, MessageDao> {
+@Log4j2
+@Service
+@Transactional
+public class MessageService extends AbstractService<Message, MessageRepository> {
 
-    private static MessageService messageServiceInstance;
-    private final Logger LOGGER = LogManager.getLogger(MessageService.class);
+    @Autowired
+    private BidService bidService;
+    @Autowired
+    private LotService lotService;
+    @Autowired
+    private UserService userService;
+
+    protected MessageService(MessageRepository repository) {
+        super(repository);
+    }
+
 
     @SuppressWarnings("WeakerAccess")
     public List<Message> findOutcomeMessagesByUserId(Integer userId) {
 
-        LOGGER.debug("findOutcomeMessagesByUserId() userId = {}", userId);
-        return dao.findOutcomeMessagesByUserId(userId);
+        log.debug("findOutcomeMessagesByUserId() userId = {}", userId);
+        return repository.findOutcomeMessagesByUserId(userId);
 
     }
 
     public List<Message> findMessagesByUserId(Integer userId) {
 
-        LOGGER.debug("findMessagesByUserId() userId = {}", userId);
-        return dao.findMessagesByUserId(userId);
+        log.debug("findMessagesByUserId() userId = {}", userId);
 
+        List<Message> messages = repository.findMessagesByUserId(userId);
+
+        if (messages.isEmpty()) {
+            throw new NotYetPopulatedException("У вас пока нет сообщений.");
+        }
+
+        return messages;
     }
 
     @SuppressWarnings("WeakerAccess")
     public void createOutcomeMessage(LocalDateTime time, Integer userId, Integer lotId, boolean userLeading) {
 
-        LOGGER.debug("createOutcomeMessage() time = {}, userId = {}, lotId = {}, userLeading = {}",
+        log.debug("createOutcomeMessage() time = {}, userId = {}, lotId = {}, userLeading = {}",
                 time, userId, lotId, userLeading);
 
         Message message = new Message();
         message.setTime(time);
         message.setType(MessageType.OUTCOME);
-        message.setUserId(userId);
-        message.setLotId(lotId);
+        message.setUser(userService.findById(userId));
+        message.setLot(lotService.findById(lotId));
 
         if (userLeading) {
             message.setText("Вы выиграли торги по лоту №" + lotId + "!");
@@ -56,27 +76,27 @@ public class MessageService extends AbstractService<Message, MessageDao> {
 
     void createWarningMessage(Integer userId, Bid bid) {
 
-        LOGGER.debug("createWarningMessage() userId = {}, bid = {}", userId, bid);
+        log.debug("createWarningMessage() userId = {}, bid = {}", userId, bid);
 
         Message message = new Message();
         message.setTime(bid.getTime());
         message.setType(MessageType.WARNING);
-        message.setUserId(userId);
-        message.setLotId(bid.getLotId());
-        message.setText("Ваша ставка по лоту №" + bid.getLotId() + " была перебита!");
+        message.setUser(userService.findById(userId));
+        message.setLot(bid.getLot());
+        message.setText("Ваша ставка по лоту №" + bid.getLot().getId() + " была перебита!");
 
         create(message);
     }
 
     public void prepareUserMessages(Integer userId) {
 
-        LOGGER.debug("prepareUserMessages() userId = {}", userId);
+        log.debug("prepareUserMessages() userId = {}", userId);
 
         List<Message> userOutcomeMessages = findOutcomeMessagesByUserId(userId);
-        List<Lot> expiredUserLots = LotService.getInstance().findExpiredLotsByUserId(userId);
+        List<Lot> expiredUserLots = lotService.findExpiredLotsByUserId(userId);
         List<Integer> checkedLotIds = new ArrayList<>();
 
-        userOutcomeMessages.forEach(message -> checkedLotIds.add(message.getLotId()));
+        userOutcomeMessages.forEach(message -> checkedLotIds.add(message.getLot().getId()));
 
         for (Integer checkedLotId : checkedLotIds) {
             expiredUserLots.removeIf(obj -> obj.getId().equals(checkedLotId));
@@ -84,7 +104,7 @@ public class MessageService extends AbstractService<Message, MessageDao> {
 
         if (!expiredUserLots.isEmpty()) {
             for (Lot lot : expiredUserLots) {
-                if (BidService.getInstance().isUserLeading(lot.getId(), userId)) {
+                if (bidService.isUserLeading(lot.getId(), userId)) {
                     createOutcomeMessage(lot.getCloses(), userId, lot.getId(), true);
                 } else {
                     createOutcomeMessage(lot.getCloses(), userId, lot.getId(), false);
@@ -93,12 +113,4 @@ public class MessageService extends AbstractService<Message, MessageDao> {
         }
     }
 
-    public static MessageService getInstance() {
-        if (messageServiceInstance != null) {
-            return messageServiceInstance;
-        }
-        messageServiceInstance = new MessageService();
-        messageServiceInstance.setDao(MessageDao.getInstance());
-        return messageServiceInstance;
-    }
 }

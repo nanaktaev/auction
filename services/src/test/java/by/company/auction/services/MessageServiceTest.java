@@ -1,68 +1,66 @@
 package by.company.auction.services;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.dao.MessageDao;
-import by.company.auction.model.Bid;
-import by.company.auction.model.Lot;
-import by.company.auction.model.Message;
-import by.company.auction.model.MessageType;
+import by.company.auction.model.*;
+import by.company.auction.repository.MessageRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 public class MessageServiceTest extends AbstractTest {
 
+    @Mock
+    private MessageRepository messageRepository;
+    @Mock
+    private LotService lotService;
+    @Mock
+    private UserService userService;
+    @Mock
+    private BidService bidService;
+    @InjectMocks
+    private MessageService messageService;
+
     private Message message;
     private List<Message> messages;
     private Bid bid;
-    private MessageService messageService;
-    private MessageDao messageDao;
-    private LotService lotService;
-    private BidService bidService;
+    private User user;
 
     @Before
     public void beforeEachTest() {
 
-        PowerMockito.mockStatic(MessageDao.class);
-        PowerMockito.when(MessageDao.getInstance()).thenReturn(mock(MessageDao.class));
-        PowerMockito.mockStatic(LotService.class);
-        PowerMockito.when(LotService.getInstance()).thenReturn(mock(LotService.class));
-        PowerMockito.mockStatic(BidService.class);
-        PowerMockito.when(BidService.getInstance()).thenReturn(mock(BidService.class));
-        MockitoAnnotations.initMocks(this);
+        Lot lot = new Lot();
+        lot.setId(1);
 
-        messageDao = MessageDao.getInstance();
-        messageService = MessageService.getInstance();
-        lotService = LotService.getInstance();
-        bidService = BidService.getInstance();
+        Lot lot33 = new Lot();
+        lot33.setId(33);
 
         message = new Message();
         message.setId(1);
         message.setType(MessageType.OUTCOME);
-        message.setLotId(1);
+        message.setLot(lot);
 
         messages = Collections.singletonList(message);
 
         bid = new Bid();
         bid.setTime(LocalDateTime.now());
-        bid.setLotId(33);
+        bid.setLot(lot33);
+
+        user = new User();
+        user.setId(1);
     }
 
     @Test
-    @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void prepareUserMessagesOneLoseOneWin() {
 
         Lot lot = new Lot();
@@ -79,12 +77,12 @@ public class MessageServiceTest extends AbstractTest {
 
         List<Lot> lots = new java.util.ArrayList<>(Arrays.asList(lot, lot2, lot3));
 
-        when(messageService.findOutcomeMessagesByUserId(anyInt())).thenReturn(messages);
-        when(lotService.findExpiredLotsByUserId(anyInt())).thenReturn(lots);
-        when(bidService.isUserLeading(1, 1)).thenReturn(true);
+        when(messageService.findOutcomeMessagesByUserId(1)).thenReturn(messages);
+        when(lotService.findExpiredLotsByUserId(1)).thenReturn(lots);
         when(bidService.isUserLeading(2, 1)).thenReturn(true);
         when(bidService.isUserLeading(3, 1)).thenReturn(false);
-        when(messageDao.create(any(Message.class))).thenReturn(message);
+        when(messageRepository.save(any(Message.class))).thenReturn(message);
+        when(userService.findById(1)).thenReturn(user);
 
         messageService = spy(messageService);
         messageService.prepareUserMessages(1);
@@ -94,7 +92,6 @@ public class MessageServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void prepareUserMessagesNoNewMessages() {
 
         Lot lot = new Lot();
@@ -103,10 +100,8 @@ public class MessageServiceTest extends AbstractTest {
 
         List<Lot> lots = new java.util.ArrayList<>(Collections.singletonList(lot));
 
-        when(messageService.findOutcomeMessagesByUserId(anyInt())).thenReturn(messages);
-        when(lotService.findExpiredLotsByUserId(anyInt())).thenReturn(lots);
-        when(bidService.isUserLeading(1, 1)).thenReturn(true);
-        when(messageDao.create(any(Message.class))).thenReturn(message);
+        when(messageService.findOutcomeMessagesByUserId(1)).thenReturn(messages);
+        when(lotService.findExpiredLotsByUserId(1)).thenReturn(lots);
 
         messageService = spy(messageService);
         messageService.prepareUserMessages(1);
@@ -116,13 +111,12 @@ public class MessageServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void createOutcomeMessageWhileUserIsLeading() {
 
         final ArgumentCaptor<Message> CAPTOR = ArgumentCaptor.forClass(Message.class);
 
         messageService.createOutcomeMessage(LocalDateTime.now(), 1, 33, true);
-        verify(messageDao).create(CAPTOR.capture());
+        verify(messageRepository).save(CAPTOR.capture());
         Message createdMessage = CAPTOR.getValue();
 
         assertEquals("Вы выиграли торги по лоту №33!", createdMessage.getText());
@@ -130,13 +124,12 @@ public class MessageServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void createOutcomeMessageWhileUserIsLosing() {
 
         final ArgumentCaptor<Message> CAPTOR = ArgumentCaptor.forClass(Message.class);
 
         messageService.createOutcomeMessage(LocalDateTime.now(), 1, 33, false);
-        verify(messageDao).create(CAPTOR.capture());
+        verify(messageRepository).save(CAPTOR.capture());
         Message createdMessage = CAPTOR.getValue();
 
         assertEquals("Вы проиграли торги по лоту №33.", createdMessage.getText());
@@ -144,13 +137,12 @@ public class MessageServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void createWarningMessage() {
 
         final ArgumentCaptor<Message> CAPTOR = ArgumentCaptor.forClass(Message.class);
 
         messageService.createWarningMessage(1, bid);
-        verify(messageDao).create(CAPTOR.capture());
+        verify(messageRepository).save(CAPTOR.capture());
         Message createdMessage = CAPTOR.getValue();
 
         assertEquals("Ваша ставка по лоту №33 была перебита!", createdMessage.getText());
@@ -158,10 +150,9 @@ public class MessageServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void findMessagesByUserId() {
 
-        when(messageDao.findMessagesByUserId(anyInt())).thenReturn(messages);
+        when(messageRepository.findMessagesByUserId(anyInt())).thenReturn(messages);
 
         List<Message> receivedMessages = messageService.findMessagesByUserId(1);
 
@@ -170,10 +161,9 @@ public class MessageServiceTest extends AbstractTest {
     }
 
     @Test
-    @PrepareForTest({MessageService.class, MessageDao.class, LotService.class, BidService.class})
     public void findOutcomeMessagesByUserId() {
 
-        when(messageDao.findOutcomeMessagesByUserId(anyInt())).thenReturn(messages);
+        when(messageRepository.findOutcomeMessagesByUserId(anyInt())).thenReturn(messages);
 
         List<Message> receivedMessages = messageService.findOutcomeMessagesByUserId(1);
 

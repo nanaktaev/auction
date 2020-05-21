@@ -16,7 +16,9 @@ public class Authentication {
         userId = user.getId();
         username = user.getUsername();
         userRole = user.getRole();
-        userCompanyId = user.getCompanyId();
+        if (null != user.getCompany()) {
+            userCompanyId = user.getCompany().getId();
+        }
     }
 
     public void clear() {

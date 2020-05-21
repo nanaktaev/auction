@@ -4,66 +4,55 @@ import by.company.auction.AbstractTest;
 import by.company.auction.common.exceptions.AlreadyExistsException;
 import by.company.auction.model.User;
 import by.company.auction.services.UserService;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.MockitoAnnotations;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class UserValidatorTest extends AbstractTest {
 
+    @Mock
     private UserService userService;
+    @InjectMocks
     private UserValidator userValidator;
-    private User user;
 
-    @Before
-    public void beforeEachTest() {
+    private static User user;
 
-        PowerMockito.mockStatic(UserService.class);
-        PowerMockito.when(UserService.getInstance()).thenReturn(mock(UserService.class));
-        MockitoAnnotations.initMocks(this);
-
-        userValidator = UserValidator.getInstance();
-        userService = UserService.getInstance();
+    @BeforeClass
+    public static void beforeAllTests() {
 
         user = new User();
         user.setEmail("user@mail.com");
-        user.setUsername("user");
+        user.setUsername("username");
 
     }
 
     @Test
-    @PrepareForTest({UserService.class, UserValidator.class})
     public void validateSuccess() {
 
-        when(userService.findUserByEmail(anyString())).thenReturn(null);
-        when(userService.findUserByUsername(anyString())).thenReturn(null);
+        when(userService.findUserByEmail("user@mail.com")).thenReturn(null);
+        when(userService.findUserByUsername("username")).thenReturn(null);
 
         userValidator.validate(user);
 
     }
 
     @Test(expected = AlreadyExistsException.class)
-    @PrepareForTest({UserService.class, UserValidator.class})
     public void validateEmailExists() {
 
-        when(userService.findUserByEmail(anyString())).thenReturn(user);
-        when(userService.findUserByUsername(anyString())).thenReturn(null);
+        when(userService.findUserByEmail("user@mail.com")).thenReturn(user);
 
         userValidator.validate(user);
 
     }
 
     @Test(expected = AlreadyExistsException.class)
-    @PrepareForTest({UserService.class, UserValidator.class})
     public void validateUsernameExists() {
 
-        when(userService.findUserByEmail(anyString())).thenReturn(null);
-        when(userService.findUserByUsername(anyString())).thenReturn(user);
+        when(userService.findUserByEmail("user@mail.com")).thenReturn(null);
+        when(userService.findUserByUsername("username")).thenReturn(user);
 
         userValidator.validate(user);
 

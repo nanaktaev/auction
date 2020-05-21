@@ -1,4 +1,4 @@
-package by.company.auction.console.menu;
+package by.company.auction.console;
 
 import java.util.function.Supplier;
 

@@ -1,61 +1,68 @@
 package by.company.auction.services;
 
-import by.company.auction.dao.AbstractDao;
+import by.company.auction.common.exceptions.NoSuchEntityException;
+import by.company.auction.common.exceptions.NotYetPopulatedException;
 import by.company.auction.model.BaseEntity;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-public abstract class AbstractService<T extends BaseEntity, DAO extends AbstractDao<T>> {
+@Log4j2
+@Transactional
+public abstract class AbstractService<T extends BaseEntity, R extends JpaRepository<T, Integer>> {
 
-    DAO dao;
-    private final Logger LOGGER = LogManager.getLogger(AbstractService.class);
+    final R repository;
 
-    void setDao(DAO dao) {
-        this.dao = dao;
+    protected AbstractService(R repository) {
+        this.repository = repository;
     }
 
     public T findById(Integer id) {
 
-        LOGGER.debug("findById() dao = {}, id = {}", dao.getClass().getSimpleName(), id);
-        return dao.findById(id);
+        log.debug("findById() dao = {}, id = {}", repository.getClass().getSimpleName(), id);
 
+        return repository.findById(id).orElseThrow(() -> new NoSuchEntityException("Ничего не найдено."));
     }
 
     public List<T> findAll() {
 
-        LOGGER.debug("findAll() dao = {}", dao.getClass().getSimpleName());
-        return dao.findAll();
+        log.debug("findAll() dao = {}", repository.getClass().getSimpleName());
 
+        List<T> entities = repository.findAll();
+
+        if (entities.isEmpty()) {
+            throw new NotYetPopulatedException("Пока здесь ничего нет.");
+        }
+
+        return entities;
     }
 
     public T create(T entity) {
 
-        LOGGER.debug("create() entity = {}", entity);
-        return dao.create(entity);
+        log.debug("create() entity = {}", entity);
 
+        return repository.save(entity);
     }
 
     public void delete(Integer id) {
 
-        LOGGER.debug("delete() dao = {}, id = {}", dao.getClass().getSimpleName(), id);
-        dao.delete(id);
+        log.debug("delete() dao = {}, id = {}", repository.getClass().getSimpleName(), id);
 
+        repository.delete(findById(id));
     }
 
     public T update(T entity) {
 
-        LOGGER.debug("update() entity = {}", entity);
-        return dao.update(entity);
+        log.debug("update() entity = {}", entity);
 
+        return repository.save(entity);
     }
 
-    boolean exists(Integer id) {
-
-        LOGGER.debug("exists() dao = {}, id = {}", dao.getClass().getSimpleName(), id);
-        return findById(id) != null;
-
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    public boolean exists(Integer id) {
+        return repository.findById(id).isPresent();
     }
 
 }

@@ -1,71 +1,93 @@
 package by.company.auction.services;
 
-import by.company.auction.dao.LotDao;
+import by.company.auction.common.exceptions.NotYetPopulatedException;
 import by.company.auction.model.Lot;
+import by.company.auction.repository.LotRepository;
 import by.company.auction.validators.LotValidator;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static by.company.auction.common.security.AuthenticationConfig.authentication;
 
-public class LotService extends AbstractService<Lot, LotDao> {
+@Log4j2
+@Service
+@Transactional
+public class LotService extends AbstractService<Lot, LotRepository> {
 
-    private static LotService lotServiceInstance;
-    private final Logger LOGGER = LogManager.getLogger(LotService.class);
+    @Autowired
+    private LotValidator lotValidator;
+    @Autowired
+    private CompanyService companyService;
+
+    protected LotService(LotRepository repository) {
+        super(repository);
+    }
+
 
     public List<Lot> findLotsByTownId(Integer townId) {
 
-        LOGGER.debug("findLotsByTownId() townId = {}", townId);
-        return dao.findLotsByTownId(townId);
+        log.debug("findLotsByTownId() townId = {}", townId);
 
+        List<Lot> lots = repository.findLotsByTownId(townId);
+
+        if (lots.isEmpty()) {
+            throw new NotYetPopulatedException("В этом городе пока нет лотов.");
+        }
+
+        return lots;
     }
 
     public List<Lot> findLotsByCategoryId(Integer categoryId) {
 
-        LOGGER.debug("findLotsByCategoryId() categoryId = {}", categoryId);
-        return dao.findLotsByCategoryId(categoryId);
+        log.debug("findLotsByCategoryId() categoryId = {}", categoryId);
 
+        List<Lot> lots = repository.findLotsByCategoryId(categoryId);
+
+        if (lots.isEmpty()) {
+            throw new NotYetPopulatedException("В этой категории пока нет лотов.");
+        }
+
+        return lots;
     }
 
     @SuppressWarnings("WeakerAccess")
     public List<Lot> findLotsByUserId(Integer userId) {
 
-        LOGGER.debug("findLotsByUserId() userId = {}", userId);
-        return dao.findLotsByUserId(userId);
+        log.debug("findLotsByUserId() userId = {}", userId);
+        return repository.findLotsByUserId(userId);
 
     }
 
     List<Lot> findExpiredLotsByUserId(Integer userId) {
 
-        LOGGER.debug("findExpiredLotsByUserId() userId = {}", userId);
-        return dao.findExpiredLotsByUserId(userId);
+        log.debug("findExpiredLotsByUserId() userId = {}", userId);
+        return repository.findExpiredLotsByUserId(userId);
 
     }
 
     public Lot createLot(Lot lot) {
 
-        LOGGER.debug("createLot() lot = {}", lot);
+        log.debug("createLot() lot = {}", lot);
 
         Integer companyId = authentication.getUserCompanyId();
 
-        LotValidator.getInstance().validate(lot);
+        lotValidator.validate(lot);
 
-        lot.setCompanyId(companyId);
+        lot.setCompany(companyService.findById(companyId));
         lot.setOpened(LocalDateTime.now());
         lot.setPrice(lot.getPriceStart());
 
         return create(lot);
     }
 
-    public static LotService getInstance() {
-        if (lotServiceInstance != null) {
-            return lotServiceInstance;
-        }
-        lotServiceInstance = new LotService();
-        lotServiceInstance.setDao(LotDao.getInstance());
-        return lotServiceInstance;
+    @Override
+    public void delete(Integer id) {
+        repository.deleteLotWithBidsById(id);
     }
+
 }
