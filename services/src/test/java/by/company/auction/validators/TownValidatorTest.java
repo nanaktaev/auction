@@ -1,8 +1,8 @@
 package by.company.auction.validators;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.common.exceptions.AlreadyExistsException;
-import by.company.auction.model.Town;
+import by.company.auction.common.exceptions.EntityAlreadyExistsException;
+import by.company.auction.dto.TownDto;
 import by.company.auction.services.TownService;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,14 +18,13 @@ public class TownValidatorTest extends AbstractTest {
     @InjectMocks
     private TownValidator townValidator;
 
-    private static Town town;
+    private static TownDto townDto;
 
     @BeforeClass
     public static void beforeAllTests() {
 
-        town = new Town();
-        town.setName("Minsk");
-
+        townDto = new TownDto();
+        townDto.setName("Minsk");
     }
 
     @Test
@@ -33,17 +32,14 @@ public class TownValidatorTest extends AbstractTest {
 
         when(townService.findTownByName("Minsk")).thenReturn(null);
 
-        townValidator.validate(town);
-
+        townValidator.validate(townDto);
     }
 
-    @Test(expected = AlreadyExistsException.class)
+    @Test(expected = EntityAlreadyExistsException.class)
     public void validateAlreadyExists() {
 
-        when(townService.findTownByName("Minsk")).thenReturn(town);
+        when(townService.findTownByName("Minsk")).thenReturn(townDto);
 
-        townValidator.validate(town);
-
+        townValidator.validate(townDto);
     }
-
 }

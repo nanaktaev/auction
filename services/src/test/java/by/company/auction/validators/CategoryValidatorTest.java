@@ -1,8 +1,8 @@
 package by.company.auction.validators;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.common.exceptions.AlreadyExistsException;
-import by.company.auction.model.Category;
+import by.company.auction.common.exceptions.EntityAlreadyExistsException;
+import by.company.auction.dto.CategoryDto;
 import by.company.auction.services.CategoryService;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,32 +18,28 @@ public class CategoryValidatorTest extends AbstractTest {
     @InjectMocks
     private CategoryValidator categoryValidator;
 
-    private static Category category;
+    private static CategoryDto categoryDto;
 
     @BeforeClass
     public static void beforeAllTests() {
 
-        category = new Category();
-        category.setName("Minsk");
-
+        categoryDto = new CategoryDto();
+        categoryDto.setName("Immovables");
     }
 
     @Test
     public void validateSuccess() {
 
-        when(categoryService.findCategoryByName("Minsk")).thenReturn(null);
+        when(categoryService.findCategoryByName("Immovables")).thenReturn(null);
 
-        categoryValidator.validate(category);
-
+        categoryValidator.validate(categoryDto);
     }
 
-    @Test(expected = AlreadyExistsException.class)
+    @Test(expected = EntityAlreadyExistsException.class)
     public void validateAlreadyExists() {
 
-        when(categoryService.findCategoryByName("Minsk")).thenReturn(category);
+        when(categoryService.findCategoryByName("Immovables")).thenReturn(categoryDto);
 
-        categoryValidator.validate(category);
-
+        categoryValidator.validate(categoryDto);
     }
-
 }

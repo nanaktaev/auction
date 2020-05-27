@@ -1,8 +1,8 @@
 package by.company.auction.validators;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.common.exceptions.AlreadyExistsException;
-import by.company.auction.model.User;
+import by.company.auction.common.exceptions.EntityAlreadyExistsException;
+import by.company.auction.dto.UserDto;
 import by.company.auction.services.UserService;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,44 +18,79 @@ public class UserValidatorTest extends AbstractTest {
     @InjectMocks
     private UserValidator userValidator;
 
-    private static User user;
+    private static UserDto userDto;
+    private static UserDto userDtoIncorrect;
 
     @BeforeClass
     public static void beforeAllTests() {
 
-        user = new User();
-        user.setEmail("user@mail.com");
-        user.setUsername("username");
+        userDto = new UserDto();
+        userDto.setId(1);
+        userDto.setEmail("user@mail.com");
+        userDto.setUsername("username");
+        userDto.setPassword("password");
 
+        userDtoIncorrect = new UserDto();
+        userDtoIncorrect.setId(2);
+        userDtoIncorrect.setEmail("user@mail.com");
+        userDtoIncorrect.setUsername("username");
     }
 
     @Test
-    public void validateSuccess() {
+    public void validateCreationSuccess() {
 
         when(userService.findUserByEmail("user@mail.com")).thenReturn(null);
         when(userService.findUserByUsername("username")).thenReturn(null);
 
-        userValidator.validate(user);
-
+        userValidator.validate(userDto);
     }
 
-    @Test(expected = AlreadyExistsException.class)
-    public void validateEmailExists() {
+    @Test(expected = EntityAlreadyExistsException.class)
+    public void validateCreationEmailExists() {
 
-        when(userService.findUserByEmail("user@mail.com")).thenReturn(user);
+        when(userService.findUserByEmail("user@mail.com")).thenReturn(userDto);
 
-        userValidator.validate(user);
-
+        userValidator.validate(userDto);
     }
 
-    @Test(expected = AlreadyExistsException.class)
-    public void validateUsernameExists() {
+    @Test(expected = EntityAlreadyExistsException.class)
+    public void validateCreationUsernameExists() {
 
         when(userService.findUserByEmail("user@mail.com")).thenReturn(null);
-        when(userService.findUserByUsername("username")).thenReturn(user);
+        when(userService.findUserByUsername("username")).thenReturn(userDto);
 
-        userValidator.validate(user);
-
+        userValidator.validate(userDto);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void validateCreationPropertyNotSet() {
+
+        userValidator.validate(userDtoIncorrect);
+    }
+
+    @Test
+    public void validateUpdateSuccess() {
+
+        when(userService.findUserByEmail("user@mail.com")).thenReturn(userDto);
+        when(userService.findUserByUsername("username")).thenReturn(userDto);
+
+        userValidator.validateUpdate(userDto);
+    }
+
+    @Test(expected = EntityAlreadyExistsException.class)
+    public void validateUpdateEmailExists() {
+
+        when(userService.findUserByEmail("user@mail.com")).thenReturn(userDtoIncorrect);
+
+        userValidator.validateUpdate(userDto);
+    }
+
+    @Test(expected = EntityAlreadyExistsException.class)
+    public void validateUpdateUsernameExists() {
+
+        when(userService.findUserByEmail("user@mail.com")).thenReturn(userDto);
+        when(userService.findUserByUsername("username")).thenReturn(userDtoIncorrect);
+
+        userValidator.validateUpdate(userDto);
+    }
 }

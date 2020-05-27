@@ -12,5 +12,4 @@ public abstract class AuctionException extends RuntimeException {
     void setMessage(String message) {
         this.message = message;
     }
-
 }

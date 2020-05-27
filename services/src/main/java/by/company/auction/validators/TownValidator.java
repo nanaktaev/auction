@@ -1,26 +1,25 @@
 package by.company.auction.validators;
 
-import by.company.auction.common.exceptions.AlreadyExistsException;
-import by.company.auction.model.Town;
+import by.company.auction.common.exceptions.EntityAlreadyExistsException;
+import by.company.auction.dto.TownDto;
 import by.company.auction.services.TownService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Log4j2
+@Slf4j
 @Component
 public class TownValidator {
 
     @Autowired
     private TownService townService;
 
-    public void validate(Town town) {
+    public void validate(TownDto townDto) {
 
-        log.debug("validate() town = {}", town);
+        log.debug("validate() townDto = {}", townDto);
 
-        if (townService.findTownByName(town.getName()) != null) {
-            throw new AlreadyExistsException("Город с таким именем уже был добавлен.");
+        if (townService.findTownByName(townDto.getName()) != null) {
+            throw new EntityAlreadyExistsException("This town has already been added.");
         }
     }
-
 }

@@ -1,26 +1,25 @@
 package by.company.auction.validators;
 
-import by.company.auction.common.exceptions.AlreadyExistsException;
-import by.company.auction.model.Company;
+import by.company.auction.common.exceptions.EntityAlreadyExistsException;
+import by.company.auction.dto.CompanyDto;
 import by.company.auction.services.CompanyService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Log4j2
+@Slf4j
 @Component
 public class CompanyValidator {
 
     @Autowired
     private CompanyService companyService;
 
-    public void validate(Company company) {
+    public void validate(CompanyDto companyDto) {
 
-        log.debug("validate() company = {}", company);
+        log.debug("validate() companyDto = {}", companyDto);
 
-        if (companyService.findCompanyByName(company.getName()) != null) {
-            throw new AlreadyExistsException("Компания с таким именем уже была добавлена.");
+        if (companyService.findCompanyByName(companyDto.getName()) != null) {
+            throw new EntityAlreadyExistsException("This company has already been added.");
         }
     }
-
 }

@@ -1,25 +1,25 @@
 package by.company.auction.validators;
 
-import by.company.auction.common.exceptions.AlreadyExistsException;
-import by.company.auction.model.Category;
+import by.company.auction.common.exceptions.EntityAlreadyExistsException;
+import by.company.auction.dto.CategoryDto;
 import by.company.auction.services.CategoryService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Log4j2
+@Slf4j
 @Component
 public class CategoryValidator {
 
     @Autowired
     private CategoryService categoryService;
 
-    public void validate(Category category) {
+    public void validate(CategoryDto categoryDto) {
 
-        log.debug("validate() category = {}", category);
+        log.debug("validate() categoryDto = {}", categoryDto);
 
-        if (categoryService.findCategoryByName(category.getName()) != null) {
-            throw new AlreadyExistsException("Категория с таким именем уже существует.");
+        if (categoryService.findCategoryByName(categoryDto.getName()) != null) {
+            throw new EntityAlreadyExistsException("This category has already been added.");
         }
     }
 

@@ -1,0 +1,22 @@
+logging:
+  level:
+    ROOT: ERROR
+    by.company.auction: DEBUG
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/logs.log
+
+spring:
+  jpa:
+    database: POSTGRESQL
+    hibernate:
+      ddl-auto: update
+  datasource:
+    platform: postgres
+    url: jdbc:postgresql://localhost:5432/auction_database
+    username: postgres
+    password: postgres
+    driverClassName: org.postgresql.Driver
+
+

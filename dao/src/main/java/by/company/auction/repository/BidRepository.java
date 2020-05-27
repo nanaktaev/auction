@@ -13,10 +13,7 @@ public interface BidRepository extends JpaRepository<Bid, Integer> {
 
     List<Bid> findBidsByLotId(Integer lotId);
 
-    List<Bid> findBidsByUserId(Integer userId);
-
-    @Query(value = "SELECT * FROM bids WHERE value = (SELECT MAX(value) FROM bids WHERE lot_id = :lotId)",
+    @Query(value = "SELECT * FROM bids WHERE lot_id = :lotId ORDER BY value DESC limit 1",
             nativeQuery = true)
     Bid findTopBidByLotId(@Param("lotId") Integer lotId);
-
 }

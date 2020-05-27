@@ -15,5 +15,4 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
 
     @Query(value = "SELECT m FROM Message m WHERE m.user.id = :userId AND m.type = 'OUTCOME'")
     List<Message> findOutcomeMessagesByUserId(@Param("userId") Integer userId);
-
 }
