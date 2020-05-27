@@ -1,67 +1,116 @@
 package by.company.auction.services;
 
+import by.company.auction.common.exceptions.NotYetPopulatedException;
+import by.company.auction.converters.UserConverter;
+import by.company.auction.dto.UserDto;
+import by.company.auction.dto.UserPrincipalAuction;
 import by.company.auction.model.Role;
 import by.company.auction.model.User;
 import by.company.auction.repository.UserRepository;
+import by.company.auction.security.SecurityValidator;
+import by.company.auction.utils.CustomBeanUtils;
 import by.company.auction.validators.UserValidator;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Log4j2
+import java.util.List;
+
+@Slf4j
 @Service
 @Transactional
-public class UserService extends AbstractService<User, UserRepository> {
+public class UserService extends AbstractService<User, UserDto, UserRepository, UserConverter> {
 
-    @Autowired
-    private CompanyService companyService;
     @Autowired
     private UserValidator userValidator;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+    @Autowired
+    private SecurityValidator securityValidator;
 
-    protected UserService(UserRepository repository) {
-        super(repository);
+    protected UserService(UserRepository repository, UserConverter converter) {
+        super(repository, converter);
     }
 
-    public User updateUserRole(Integer id, String roleString, Integer companyId) {
+    public List<UserDto> findAll(Pageable pageable) {
 
-        log.debug("updateUserRole() id = {}, roleString = {}, companyId = {}", id, roleString, companyId);
+        List<User> users = repository.findAll(pageable).getContent();
 
-        User user = findById(id);
-
-        if (companyId != null) {
-            user.setCompany(companyService.findById(companyId));
+        if (users.isEmpty()) {
+            throw new NotYetPopulatedException("There is nothing here yet.");
         }
 
-        user.setRole(Role.valueOf(roleString.toUpperCase()));
-
-        return update(user);
-
+        return converter.convertListToDto(users);
     }
 
-    public User findUserByEmail(String email) {
+    public UserDto findUserByEmail(String email) {
 
         log.debug("findUserByEmail() email = {}", email);
-        return repository.findUserByEmail(email);
 
+        User user = repository.findUserByEmail(email);
+
+        if (user == null) {
+            return null;
+        }
+
+        return converter.convertToDto(user);
     }
 
-    public User findUserByUsername(String username) {
+    public UserDto findUserByUsername(String username) {
 
         log.debug("findUserByUsername() username = {}", username);
-        return repository.findUserByUsername(username);
 
+        User user = repository.findUserByUsername(username);
+
+        if (user == null) {
+            return null;
+        }
+
+        return converter.convertToDto(user);
     }
 
-    public User registerUser(User user) {
+    public UserDto registerUser(UserDto userDto) {
 
-        log.debug("registerUser() user = {}", user);
+        log.debug("registerUser() userDto = {}", userDto);
 
-        userValidator.validate(user);
+        userValidator.validate(userDto);
 
-        user.setRole(repository.isUserRepositoryEmpty() ? Role.ADMIN : Role.USER);
+        userDto.setRole(repository.isUserRepositoryEmpty() ? Role.ADMIN : Role.USER);
+        userDto.setPassword(passwordEncoder.encode(userDto.getPassword()));
 
-        return create(user);
+        return create(userDto);
     }
 
+    @Override
+    public UserDto update(UserDto userDto) {
+
+        log.debug("update() userDto = {}", userDto);
+
+        securityValidator.validateUserAccountOwnership(userDto.getId());
+
+        UserDto updatedUser = findById(userDto.getId());
+
+        if (!securityValidator.isCurrentUserAdmin()) {
+            userDto.setRole(null);
+            userDto.setCompany(null);
+        }
+
+        CustomBeanUtils.copyNotNullProperties(userDto, updatedUser);
+
+        userValidator.validateUpdate(updatedUser);
+
+        return super.update(updatedUser);
+    }
+
+    public UserDto findCurrentUser() {
+
+        UserPrincipalAuction principal = (UserPrincipalAuction)
+                SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return findById(principal.getId());
+    }
 }

@@ -5,7 +5,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
 @Data
@@ -19,10 +21,4 @@ public class Category extends BaseEntity {
 
     @NotEmpty
     private String name;
-
-    @Override
-    public String toString() {
-        return getId() + ". " + name;
-    }
-
 }

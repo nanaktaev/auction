@@ -1,25 +1,41 @@
 package by.company.auction.services;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.model.*;
+import by.company.auction.converters.MessageConverter;
+import by.company.auction.dto.BidDto;
+import by.company.auction.dto.LotDto;
+import by.company.auction.dto.MessageDto;
+import by.company.auction.dto.UserDto;
+import by.company.auction.model.Lot;
+import by.company.auction.model.Message;
+import by.company.auction.model.MessageType;
+import by.company.auction.model.User;
 import by.company.auction.repository.MessageRepository;
-import org.junit.Before;
+import by.company.auction.security.SecurityValidator;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
+
 
 public class MessageServiceTest extends AbstractTest {
 
+    @Mock
+    private MessageConverter messageConverter;
+    @Mock
+    private SecurityValidator securityValidator;
     @Mock
     private MessageRepository messageRepository;
     @Mock
@@ -31,144 +47,157 @@ public class MessageServiceTest extends AbstractTest {
     @InjectMocks
     private MessageService messageService;
 
-    private Message message;
-    private List<Message> messages;
-    private Bid bid;
-    private User user;
+    private static List<MessageDto> messageDtos;
+    private static List<Message> messages;
+    private static BidDto bid;
+    private static UserDto userDto;
+    private final ArgumentCaptor<List> LIST_CAPTOR = ArgumentCaptor.forClass(ArrayList.class);
+    private final ArgumentCaptor<MessageDto> DTO_CAPTOR = ArgumentCaptor.forClass(MessageDto.class);
 
-    @Before
-    public void beforeEachTest() {
+    @BeforeClass
+    public static void beforeAllTests() {
 
         Lot lot = new Lot();
         lot.setId(1);
 
-        Lot lot33 = new Lot();
+        LotDto lotDto = new LotDto();
+        lotDto.setId(1);
+
+        LotDto lot33 = new LotDto();
         lot33.setId(33);
 
-        message = new Message();
-        message.setId(1);
-        message.setType(MessageType.OUTCOME);
-        message.setLot(lot);
-
-        messages = Collections.singletonList(message);
-
-        bid = new Bid();
+        bid = new BidDto();
         bid.setTime(LocalDateTime.now());
         bid.setLot(lot33);
 
-        user = new User();
+        userDto = new UserDto();
+        userDto.setId(1);
+
+        User user = new User();
         user.setId(1);
-    }
 
-    @Test
-    public void prepareUserMessagesOneLoseOneWin() {
+        MessageDto messageDto = new MessageDto();
+        messageDto.setId(1);
+        messageDto.setType(MessageType.OUTCOME);
+        messageDto.setLot(lotDto);
 
-        Lot lot = new Lot();
-        lot.setId(1);
-        lot.setCloses(LocalDateTime.now());
+        messageDtos = Collections.singletonList(messageDto);
 
-        Lot lot2 = new Lot();
-        lot2.setId(2);
-        lot2.setCloses(LocalDateTime.now());
+        Message message = new Message();
+        message.setId(1);
+        message.setType(MessageType.OUTCOME);
+        message.setLot(lot);
+        message.setUser(user);
 
-        Lot lot3 = new Lot();
-        lot3.setId(3);
-        lot3.setCloses(LocalDateTime.now());
-
-        List<Lot> lots = new java.util.ArrayList<>(Arrays.asList(lot, lot2, lot3));
-
-        when(messageService.findOutcomeMessagesByUserId(1)).thenReturn(messages);
-        when(lotService.findExpiredLotsByUserId(1)).thenReturn(lots);
-        when(bidService.isUserLeading(2, 1)).thenReturn(true);
-        when(bidService.isUserLeading(3, 1)).thenReturn(false);
-        when(messageRepository.save(any(Message.class))).thenReturn(message);
-        when(userService.findById(1)).thenReturn(user);
-
-        messageService = spy(messageService);
-        messageService.prepareUserMessages(1);
-
-        verify(messageService, times(1)).createOutcomeMessage(any(LocalDateTime.class), anyInt(), anyInt(), eq(true));
-        verify(messageService, times(1)).createOutcomeMessage(any(LocalDateTime.class), anyInt(), anyInt(), eq(false));
-    }
-
-    @Test
-    public void prepareUserMessagesNoNewMessages() {
-
-        Lot lot = new Lot();
-        lot.setId(1);
-        lot.setCloses(LocalDateTime.now());
-
-        List<Lot> lots = new java.util.ArrayList<>(Collections.singletonList(lot));
-
-        when(messageService.findOutcomeMessagesByUserId(1)).thenReturn(messages);
-        when(lotService.findExpiredLotsByUserId(1)).thenReturn(lots);
-
-        messageService = spy(messageService);
-        messageService.prepareUserMessages(1);
-
-        verify(messageService, times(0)).createOutcomeMessage(any(LocalDateTime.class), anyInt(), anyInt(), eq(true));
-        verify(messageService, times(0)).createOutcomeMessage(any(LocalDateTime.class), anyInt(), anyInt(), eq(false));
+        messages = Collections.singletonList(message);
     }
 
     @Test
     public void createOutcomeMessageWhileUserIsLeading() {
 
-        final ArgumentCaptor<Message> CAPTOR = ArgumentCaptor.forClass(Message.class);
-
         messageService.createOutcomeMessage(LocalDateTime.now(), 1, 33, true);
-        verify(messageRepository).save(CAPTOR.capture());
-        Message createdMessage = CAPTOR.getValue();
 
-        assertEquals("Вы выиграли торги по лоту №33!", createdMessage.getText());
+        verify(messageConverter).convertToEntity(DTO_CAPTOR.capture());
+        MessageDto createdMessage = DTO_CAPTOR.getValue();
 
+        assertEquals("You've won bidding on a lot №33!", createdMessage.getText());
     }
 
     @Test
     public void createOutcomeMessageWhileUserIsLosing() {
 
-        final ArgumentCaptor<Message> CAPTOR = ArgumentCaptor.forClass(Message.class);
-
         messageService.createOutcomeMessage(LocalDateTime.now(), 1, 33, false);
-        verify(messageRepository).save(CAPTOR.capture());
-        Message createdMessage = CAPTOR.getValue();
 
-        assertEquals("Вы проиграли торги по лоту №33.", createdMessage.getText());
+        verify(messageConverter).convertToEntity(DTO_CAPTOR.capture());
+        MessageDto createdMessage = DTO_CAPTOR.getValue();
 
+        assertEquals("You've lost bidding on a lot №33.", createdMessage.getText());
     }
 
     @Test
-    public void createWarningMessage() {
+    public void findMessagesByUserIdNoNewMessages() {
 
-        final ArgumentCaptor<Message> CAPTOR = ArgumentCaptor.forClass(Message.class);
+        LotDto lot = new LotDto();
+        lot.setId(1);
+        lot.setCloses(LocalDateTime.now());
 
-        messageService.createWarningMessage(1, bid);
-        verify(messageRepository).save(CAPTOR.capture());
-        Message createdMessage = CAPTOR.getValue();
+        List<LotDto> lots = new java.util.ArrayList<>(Collections.singletonList(lot));
 
-        assertEquals("Ваша ставка по лоту №33 была перебита!", createdMessage.getText());
+        when(lotService.findExpiredLotsByUserId(1)).thenReturn(lots);
+        when(messageService.findOutcomeMessagesByUserId(1)).thenReturn(messageDtos);
+        when(messageRepository.findMessagesByUserId(anyInt())).thenReturn(messages);
+        doNothing().when(securityValidator).validateUserAccountOwnership(1);
 
+        messageService = spy(messageService);
+        messageService.findMessagesByUserId(1);
+
+        verify(messageConverter, times(2)).convertListToDto(LIST_CAPTOR.capture());
+        List<MessageDto> receivedMessages = LIST_CAPTOR.getValue();
+
+        assertFalse(receivedMessages.isEmpty());
+        verify(messageService, times(0)).createOutcomeMessage(any(LocalDateTime.class), anyInt(), anyInt(), eq(true));
+        verify(messageService, times(0)).createOutcomeMessage(any(LocalDateTime.class), anyInt(), anyInt(), eq(false));
+    }
+
+    @Test
+    public void findMessagesByUserIdTwoNewMessagesPrepared() {
+
+        LotDto lot = new LotDto();
+        lot.setId(1);
+        lot.setCloses(LocalDateTime.now());
+
+        LotDto lot2 = new LotDto();
+        lot2.setId(2);
+        lot2.setCloses(LocalDateTime.now());
+
+        LotDto lot3 = new LotDto();
+        lot3.setId(3);
+        lot3.setCloses(LocalDateTime.now());
+
+        List<LotDto> lots = new java.util.ArrayList<>(Arrays.asList(lot, lot2, lot3));
+
+        when(lotService.findExpiredLotsByUserId(1)).thenReturn(lots);
+        when(bidService.isUserLeading(2, 1)).thenReturn(true);
+        when(bidService.isUserLeading(3, 1)).thenReturn(false);
+        when(messageService.findOutcomeMessagesByUserId(1)).thenReturn(messageDtos);
+        when(messageRepository.findMessagesByUserId(anyInt())).thenReturn(messages);
+        doNothing().when(securityValidator).validateUserAccountOwnership(1);
+
+        messageService = spy(messageService);
+        messageService.findMessagesByUserId(1);
+
+        verify(messageConverter, times(2)).convertListToDto(LIST_CAPTOR.capture());
+        List<MessageDto> receivedMessages = LIST_CAPTOR.getValue();
+
+        assertFalse(receivedMessages.isEmpty());
+        verify(messageService, times(1)).createOutcomeMessage(any(LocalDateTime.class), anyInt(), anyInt(), eq(true));
+        verify(messageService, times(1)).createOutcomeMessage(any(LocalDateTime.class), anyInt(), anyInt(), eq(false));
     }
 
     @Test
     public void findMessagesByUserId() {
 
         when(messageRepository.findMessagesByUserId(anyInt())).thenReturn(messages);
+        doNothing().when(securityValidator).validateUserAccountOwnership(1);
 
-        List<Message> receivedMessages = messageService.findMessagesByUserId(1);
+        messageService.findMessagesByUserId(1);
 
-        assertNotNull(receivedMessages);
+        verify(messageConverter, times(2)).convertListToDto(LIST_CAPTOR.capture());
+        List<MessageDto> receivedMessages = LIST_CAPTOR.getValue();
 
+        assertFalse(receivedMessages.isEmpty());
     }
 
     @Test
-    public void findOutcomeMessagesByUserId() {
+    public void createWarningMessage() {
 
-        when(messageRepository.findOutcomeMessagesByUserId(anyInt())).thenReturn(messages);
+        when(userService.findById(1)).thenReturn(userDto);
 
-        List<Message> receivedMessages = messageService.findOutcomeMessagesByUserId(1);
+        messageService.createWarningMessage(1, bid);
 
-        assertNotNull(receivedMessages);
+        verify(messageConverter).convertToEntity(DTO_CAPTOR.capture());
+        MessageDto createdMessage = DTO_CAPTOR.getValue();
 
+        assertEquals("Your bid on a lot №33 has been outbid!", createdMessage.getText());
     }
-
 }

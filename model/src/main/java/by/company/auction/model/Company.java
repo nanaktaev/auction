@@ -21,10 +21,4 @@ public class Company extends BaseEntity {
 
     @NotEmpty
     private String name;
-
-    @Override
-    public String toString() {
-        return getId() + ". " + name;
-    }
-
 }

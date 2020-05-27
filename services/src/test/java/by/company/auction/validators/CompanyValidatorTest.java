@@ -1,8 +1,8 @@
 package by.company.auction.validators;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.common.exceptions.AlreadyExistsException;
-import by.company.auction.model.Company;
+import by.company.auction.common.exceptions.EntityAlreadyExistsException;
+import by.company.auction.dto.CompanyDto;
 import by.company.auction.services.CompanyService;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,32 +18,28 @@ public class CompanyValidatorTest extends AbstractTest {
     @InjectMocks
     private CompanyValidator companyValidator;
 
-    private static Company company;
+    private static CompanyDto companyDto;
 
     @BeforeClass
     public static void beforeAllTests() {
 
-        company = new Company();
-        company.setName("Minsk");
-
+        companyDto = new CompanyDto();
+        companyDto.setName("Netcracker");
     }
 
     @Test
     public void validateSuccess() {
 
-        when(companyService.findCompanyByName("Minsk")).thenReturn(null);
+        when(companyService.findCompanyByName("Netcracker")).thenReturn(null);
 
-        companyValidator.validate(company);
-
+        companyValidator.validate(companyDto);
     }
 
-    @Test(expected = AlreadyExistsException.class)
+    @Test(expected = EntityAlreadyExistsException.class)
     public void validateAlreadyExists() {
 
-        when(companyService.findCompanyByName("Minsk")).thenReturn(company);
+        when(companyService.findCompanyByName("Netcracker")).thenReturn(companyDto);
 
-        companyValidator.validate(company);
-
+        companyValidator.validate(companyDto);
     }
-
 }

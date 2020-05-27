@@ -21,10 +21,4 @@ public class Town extends BaseEntity {
 
     @NotEmpty
     private String name;
-
-    @Override
-    public String toString() {
-        return getId() + ". " + name;
-    }
-
 }

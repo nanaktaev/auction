@@ -1,43 +1,60 @@
 package by.company.auction.validators;
 
-import by.company.auction.common.exceptions.AlreadyExistsException;
-import by.company.auction.common.exceptions.WrongCredentialsException;
-import by.company.auction.model.User;
+import by.company.auction.common.exceptions.EntityAlreadyExistsException;
+import by.company.auction.dto.UserDto;
 import by.company.auction.services.UserService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-@Log4j2
+@Slf4j
 @Component
 public class UserValidator {
 
     @Autowired
     private UserService userService;
 
-    public void validate(User user) {
+    public void validate(UserDto userDto) {
 
-        log.debug("validate() user = {}", user);
+        log.debug("validate() userDto = {}", userDto);
 
-        if (userService.findUserByEmail(user.getEmail()) != null) {
-            throw new AlreadyExistsException("Ошибка. Данная почта уже используется.");
+        validateNullProperties(userDto);
+
+        if (userService.findUserByEmail(userDto.getEmail()) != null) {
+            throw new EntityAlreadyExistsException("This email is already in use.");
         }
-        if (userService.findUserByUsername(user.getUsername()) != null) {
-            throw new AlreadyExistsException("Ошибка. Данное имя пользователя уже занято.");
+        if (userService.findUserByUsername(userDto.getUsername()) != null) {
+            throw new EntityAlreadyExistsException("This username is already in use.");
         }
     }
 
-    public User validateLogin(String email, String password) {
+    public void validateUpdate(UserDto userDto) {
 
-        log.debug("validateLogin() email = {}, password = {}", email, password);
+        log.debug("validate() userDto = {}", userDto);
 
-        User user = userService.findUserByEmail(email);
+        UserDto existingUser = userService.findUserByEmail(userDto.getEmail());
 
-        if (user == null || !user.getPassword().equals(password)) {
-            throw new WrongCredentialsException("Введенные данные не верны.");
+        if (existingUser != null && !existingUser.getId().equals(userDto.getId())) {
+            throw new EntityAlreadyExistsException("This email is already in use.");
         }
 
-        return user;
+        existingUser = userService.findUserByUsername(userDto.getUsername());
+
+        if (existingUser != null && !existingUser.getId().equals(userDto.getId())) {
+            throw new EntityAlreadyExistsException("This username is already in use.");
+        }
     }
 
+    private void validateNullProperties(UserDto userDto) {
+
+        if (userDto.getPassword() == null) {
+            throw new NullPointerException("Password is necessary.");
+        }
+        if (userDto.getEmail() == null) {
+            throw new NullPointerException("Email is necessary.");
+        }
+        if (userDto.getUsername() == null) {
+            throw new NullPointerException("Username is necessary.");
+        }
+    }
 }

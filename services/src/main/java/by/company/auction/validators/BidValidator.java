@@ -2,69 +2,76 @@ package by.company.auction.validators;
 
 import by.company.auction.common.exceptions.BusinessException;
 import by.company.auction.common.exceptions.NoSuchEntityException;
-import by.company.auction.model.Bid;
-import by.company.auction.model.Lot;
+import by.company.auction.dto.BidDto;
+import by.company.auction.dto.LotDto;
 import by.company.auction.services.BidService;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
-@Log4j2
+@Slf4j
 @Component
 public class BidValidator {
 
     @Autowired
     private BidService bidService;
 
-    public void validate(Lot lot, Bid bid, Integer userId) {
+    public void validate(LotDto lotDto, BidDto bidDto, Integer userId) {
 
-        log.debug("validate() lot = {}, bid = {}, userId = {}", lot, bid, userId);
+        log.debug("validate() lotDto = {}, bidDto = {}, userId = {}", lotDto, bidDto, userId);
 
-        validateLotExistence(lot);
-        validateLotClosingDate(lot);
-        validateTopBid(lot.getId(), userId);
-        validateBidValue(lot, bid.getValue());
-
+        validateLotExistence(lotDto);
+        validateLotClosingDate(lotDto);
+        validateTopBid(lotDto.getId(), userId);
+        validateBidValue(lotDto, bidDto.getValue());
     }
 
     @SuppressWarnings("WeakerAccess")
-    public void validateBidValue(Lot lot, BigDecimal value) {
+    public void validateBidValue(LotDto lotDto, BigDecimal value) {
 
-        if (!lot.isBidValueEnough(value)) {
-            throw new BusinessException("Ошибка. Ваша ставка недостаточно высока.");
+        if (!isBidValueEnough(lotDto, value)) {
+            throw new BusinessException("Your bid is not high enough.");
         }
-
     }
 
     @SuppressWarnings("WeakerAccess")
     public void validateTopBid(Integer lotId, Integer userId) {
 
-        Bid topBid = bidService.findTopBidByLotId(lotId);
+        BidDto topBid = bidService.findTopBidByLotId(lotId);
 
         if (topBid != null && userId.equals(topBid.getUser().getId())) {
-            throw new BusinessException("Ошибка. Ваша ставка уже на вершине.");
+            throw new BusinessException("Your bid is already at the top.");
         }
-
     }
 
     @SuppressWarnings("WeakerAccess")
-    public void validateLotClosingDate(Lot lot) {
+    public void validateLotClosingDate(LotDto lotDto) {
 
-        if (lot.isExpired()) {
-            throw new BusinessException("Ошибка. Торги по данному лоту уже окончены.");
+        if (isLotExpired(lotDto)) {
+            throw new BusinessException("Bidding on this lot has already been finished.");
         }
-
     }
 
     @SuppressWarnings("WeakerAccess")
-    public void validateLotExistence(Lot lot) {
+    public void validateLotExistence(LotDto lotDto) {
 
-        if (lot == null) {
-            throw new NoSuchEntityException("Ошибка. Лот по данному id не найден.");
+        if (lotDto == null) {
+            throw new NoSuchEntityException("The lot was not found by this id.");
         }
-
     }
 
+    private boolean isLotExpired(LotDto lotDto) {
+        return LocalDateTime.now().isAfter(lotDto.getCloses());
+    }
+
+    public boolean isLotBurning(LotDto lotDto) {
+        return !isLotExpired(lotDto) && LocalDateTime.now().plusMinutes(3).isAfter(lotDto.getCloses());
+    }
+
+    private boolean isBidValueEnough(LotDto lotDto, BigDecimal value) {
+        return value.compareTo(lotDto.getPrice().add(lotDto.getStep())) >= 0;
+    }
 }

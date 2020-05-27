@@ -1,44 +1,54 @@
 package by.company.auction.services;
 
 import by.company.auction.AbstractTest;
-import by.company.auction.common.exceptions.NoSuchEntityException;
-import by.company.auction.model.Company;
+import by.company.auction.converters.UserConverter;
+import by.company.auction.dto.UserDto;
 import by.company.auction.model.Role;
 import by.company.auction.model.User;
 import by.company.auction.repository.UserRepository;
+import by.company.auction.security.SecurityValidator;
 import by.company.auction.validators.UserValidator;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 public class UserServiceTest extends AbstractTest {
 
+    @SuppressWarnings("unused")
+    @Spy
+    private UserConverter userConverter;
+    @SuppressWarnings("unused")
+    @Spy
+    private BCryptPasswordEncoder passwordEncoder;
+    @Mock
+    private SecurityValidator securityValidator;
     @Mock
     private UserValidator userValidator;
     @Mock
     private UserRepository userRepository;
-    @Mock
-    private CompanyService companyService;
     @InjectMocks
     private UserService userService;
 
-    private User user;
-    private User newUser;
-    private Company company;
+    private static User user;
+    private static UserDto userDto;
+    private final ArgumentCaptor<User> CAPTOR = ArgumentCaptor.forClass(User.class);
 
-    @Before
-    public void beforeEachTest() {
+    @BeforeClass
+    public static void beforeAllTests() {
 
-        newUser = new User();
-        newUser.setEmail("admin@mail.com");
-        newUser.setUsername("admin");
-        newUser.setPassword("admin");
+        userDto = new UserDto();
+        userDto.setEmail("admin@mail.com");
+        userDto.setUsername("admin");
+        userDto.setPassword("admin");
 
         user = new User();
         user.setId(1);
@@ -46,36 +56,36 @@ public class UserServiceTest extends AbstractTest {
         user.setUsername("user");
         user.setPassword("user");
         user.setRole(Role.USER);
-
-        company = new Company();
-        company.setId(1);
-
     }
 
     @Test
     public void registerOrdinaryUser() {
 
         when(userRepository.isUserRepositoryEmpty()).thenReturn(false);
-        doNothing().when(userValidator).validate(newUser);
-        when(userRepository.save(newUser)).thenReturn(newUser);
+        doNothing().when(userValidator).validate(userDto);
+        when(userRepository.save(any())).thenReturn(user);
 
-        User registeredUser = userService.registerUser(newUser);
+        userService.registerUser(userDto);
+
+        verify(userRepository).save(CAPTOR.capture());
+        User registeredUser = CAPTOR.getValue();
 
         assertEquals(Role.USER, registeredUser.getRole());
-
     }
 
     @Test
     public void registerFirstUser() {
 
         when(userRepository.isUserRepositoryEmpty()).thenReturn(true);
-        doNothing().when(userValidator).validate(newUser);
-        when(userRepository.save(newUser)).thenReturn(newUser);
+        doNothing().when(userValidator).validate(userDto);
+        when(userRepository.save(any())).thenReturn(user);
 
-        User registeredUser = userService.registerUser(newUser);
+        userService.registerUser(userDto);
+
+        verify(userRepository).save(CAPTOR.capture());
+        User registeredUser = CAPTOR.getValue();
 
         assertEquals(Role.ADMIN, registeredUser.getRole());
-
     }
 
     @Test
@@ -83,10 +93,9 @@ public class UserServiceTest extends AbstractTest {
 
         when(userRepository.findUserByUsername("user")).thenReturn(user);
 
-        User receivedUser = userService.findUserByUsername("user");
+        UserDto receivedUser = userService.findUserByUsername("user");
 
-        assertNotNull(receivedUser);
-
+        assertEquals(receivedUser.getUsername(), "user");
     }
 
     @Test
@@ -94,34 +103,44 @@ public class UserServiceTest extends AbstractTest {
 
         when(userRepository.findUserByEmail("user@mail.com")).thenReturn(user);
 
-        User receivedUser = userService.findUserByEmail("user@mail.com");
+        UserDto receivedUser = userService.findUserByEmail("user@mail.com");
 
-        assertNotNull(receivedUser);
-
+        assertEquals(receivedUser.getEmail(), "user@mail.com");
     }
 
     @Test
-    public void updateUserRole() {
+    public void updateUserSuccess() {
 
+        UserDto userDtoFromRequestBody = new UserDto();
+        userDtoFromRequestBody.setId(1);
+        userDtoFromRequestBody.setRole(Role.VENDOR);
+
+        doNothing().when(securityValidator).validateUserAccountOwnership(1);
         when(userRepository.findById(1)).thenReturn(java.util.Optional.ofNullable(user));
-        when(companyService.findById(1)).thenReturn(company);
-        when(userRepository.save(user)).thenReturn(user);
+        when(securityValidator.isCurrentUserAdmin()).thenReturn(true);
+        doNothing().when(userValidator).validateUpdate(any());
+        when(userRepository.save(any())).then(returnsFirstArg());
 
-        User updatedUser = userService.updateUserRole(user.getId(), "VENDOR", 1);
+        UserDto updatedUser = userService.update(userDtoFromRequestBody);
 
-        assertEquals("VENDOR", updatedUser.getRole().name());
+        assertEquals(Role.VENDOR, updatedUser.getRole());
     }
 
-    @Test(expected = NoSuchEntityException.class)
-    public void updateUserRoleWhileCompanyIsAbsent() {
+    @Test
+    public void updateUserNotEnoughPrivileges() {
 
+        UserDto userDtoFromRequestBody = new UserDto();
+        userDtoFromRequestBody.setId(1);
+        userDtoFromRequestBody.setRole(Role.VENDOR);
+
+        doNothing().when(securityValidator).validateUserAccountOwnership(1);
         when(userRepository.findById(1)).thenReturn(java.util.Optional.ofNullable(user));
-        when(companyService.findById(1)).thenThrow(new NoSuchEntityException("Ничего не найдено."));
+        when(securityValidator.isCurrentUserAdmin()).thenReturn(false);
+        doNothing().when(userValidator).validateUpdate(any());
+        when(userRepository.save(any())).thenReturn(user);
 
-        User updatedUser = userService.updateUserRole(user.getId(), "VENDOR", 1);
+        UserDto updatedUser = userService.update(userDtoFromRequestBody);
 
-        assertEquals("USER", updatedUser.getRole().name());
-
+        assertEquals(Role.USER, updatedUser.getRole());
     }
-
 }

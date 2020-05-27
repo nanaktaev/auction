@@ -11,7 +11,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Data
 @AllArgsConstructor
@@ -26,6 +25,7 @@ public class Lot extends BaseEntity {
     private String title;
 
     @NotEmpty
+    @Column(columnDefinition = "text")
     private String description;
 
     @NotNull
@@ -37,6 +37,10 @@ public class Lot extends BaseEntity {
     @NotNull
     private BigDecimal step;
 
+    private String image;
+
+    private Integer views;
+
     @NotNull
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime opened;
@@ -45,44 +49,18 @@ public class Lot extends BaseEntity {
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime closes;
 
+    @NotNull
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @NotNull
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
 
+    @NotNull
     @ManyToOne
     @JoinColumn(name = "town_id")
     private Town town;
-
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(closes);
-    }
-
-    public boolean isBurning() {
-        return !isExpired() && LocalDateTime.now().plusMinutes(3).isAfter(closes);
-    }
-
-    public boolean isBidValueEnough(BigDecimal value) {
-        return value.compareTo(price.add(step)) >= 0;
-    }
-
-    @Override
-    public String toString() {
-        return "Лот №" + getId() +
-                " - " + title +
-                "\n" + description +
-                "\nЦена - " + price +
-                " (начальная - " + priceStart +
-                "), мин. повышение - " + step +
-                "\nОкончание торгов - " + closes.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) +
-                ", начало торгов - " + opened.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")) +
-                "\nкатегория - " + category.getName() +
-                ", компания - " + company.getName() +
-                ", город - " + town.getName() +
-                ".\n";
-    }
-
 }

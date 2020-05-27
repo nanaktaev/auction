@@ -3,12 +3,13 @@ package by.company.auction.validators;
 import by.company.auction.AbstractTest;
 import by.company.auction.common.exceptions.BusinessException;
 import by.company.auction.common.exceptions.NoSuchEntityException;
-import by.company.auction.model.Category;
-import by.company.auction.model.Company;
-import by.company.auction.model.Lot;
-import by.company.auction.model.Town;
+import by.company.auction.dto.CategoryDto;
+import by.company.auction.dto.CompanyDto;
+import by.company.auction.dto.LotDto;
+import by.company.auction.dto.TownDto;
 import by.company.auction.services.CategoryService;
 import by.company.auction.services.TownService;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -28,122 +29,99 @@ public class LotValidatorTest extends AbstractTest {
     @InjectMocks
     private LotValidator lotValidator;
 
-    private static Lot lot;
+    private static LotDto lotDto;
 
     @BeforeClass
     public static void beforeAllTests() {
 
-        Company company = new Company();
-        Category category = new Category();
-        Town town = new Town();
+        CompanyDto companyDto = new CompanyDto();
+        CategoryDto categoryDto = new CategoryDto();
+        TownDto townDto = new TownDto();
 
-        company.setId(1);
-        category.setId(1);
-        town.setId(1);
+        companyDto.setId(1);
+        categoryDto.setId(1);
+        townDto.setId(1);
 
-        lot = new Lot();
-        lot.setCompany(company);
-        lot.setCategory(category);
-        lot.setTown(town);
+        lotDto = new LotDto();
+        lotDto.setCompany(companyDto);
+        lotDto.setCategory(categoryDto);
+        lotDto.setTown(townDto);
+        lotDto.setTitle("Lot");
+    }
 
+    @Before
+    public void beforeEachTest() {
+
+        lotDto.setCloses(LocalDateTime.now().plusDays(1));
+        lotDto.setDescription("Description.");
+        lotDto.setStep(new BigDecimal(10));
+        lotDto.setPriceStart(new BigDecimal(100));
     }
 
     @Test
-    public void validateClosingDateSuccess() {
-
-        lot.setCloses(LocalDateTime.now().plusHours(1));
-        lotValidator.validateClosingDate(lot);
-
-    }
-
-    @Test(expected = BusinessException.class)
-    public void validateClosingDateFailure() {
-
-        lot.setCloses(LocalDateTime.now());
-        lotValidator.validateClosingDate(lot);
-
-    }
-
-    @Test
-    public void validateStepSuccess() {
-
-        lot.setStep(new BigDecimal(10));
-        lotValidator.validateStep(lot);
-
-    }
-
-    @Test(expected = BusinessException.class)
-    public void validateStepFailure() {
-
-        lot.setStep(new BigDecimal(0));
-        lotValidator.validateStep(lot);
-
-    }
-
-    @Test
-    public void validateStartPriceSuccess() {
-
-        lot.setPriceStart(new BigDecimal(100));
-        lotValidator.validateStartPrice(lot);
-
-    }
-
-    @Test(expected = BusinessException.class)
-    public void validateStartPriceFailure() {
-
-        lot.setPriceStart(new BigDecimal(0));
-        lotValidator.validateStartPrice(lot);
-
-    }
-
-    @Test
-    public void validateOwnershipSuccess() {
-
-        lotValidator.validateOwnership(lot, 1);
-
-    }
-
-    @Test(expected = BusinessException.class)
-    public void validateOwnershipFailure() {
-
-        lotValidator.validateOwnership(lot, 2);
-
-    }
-
-    @Test
-    public void validateCategorySuccess() {
+    public void validateUpdateSuccess() {
 
         when(categoryService.exists(1)).thenReturn(true);
+        when(townService.exists(1)).thenReturn(true);
 
-        lotValidator.validateCategory(lot);
+        lotValidator.validateUpdate(lotDto);
+    }
 
+    @Test(expected = BusinessException.class)
+    public void validateUpdateClosingDateTooSoon() {
+
+        lotDto.setCloses(LocalDateTime.now().plusMinutes(1));
+
+        lotValidator.validateUpdate(lotDto);
     }
 
     @Test(expected = NoSuchEntityException.class)
-    public void validateCategoryFailure() {
+    public void validateUpdateCategoryDoesNotExist() {
 
         when(categoryService.exists(1)).thenReturn(false);
 
-        lotValidator.validateCategory(lot);
-
-    }
-
-    @Test
-    public void validateTownSuccess() {
-
-        when(townService.exists(1)).thenReturn(true);
-
-        lotValidator.validateTown(lot);
-
+        lotValidator.validateUpdate(lotDto);
     }
 
     @Test(expected = NoSuchEntityException.class)
-    public void validateTownFailure() {
+    public void validateUpdateTownDoesNotExist() {
 
+        when(categoryService.exists(1)).thenReturn(true);
         when(townService.exists(1)).thenReturn(false);
 
-        lotValidator.validateTown(lot);
-
+        lotValidator.validateUpdate(lotDto);
     }
 
+    @Test
+    public void validateCreationSuccess() {
+
+        when(categoryService.exists(1)).thenReturn(true);
+        when(townService.exists(1)).thenReturn(true);
+
+        lotValidator.validate(lotDto);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void validateCreationPropertyNotSet() {
+
+        lotDto.setDescription(null);
+
+        lotValidator.validate(lotDto);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void validateCreationStepTooSmall() {
+
+        lotDto.setStep(new BigDecimal(0));
+
+        lotValidator.validate(lotDto);
+    }
+
+    @Test(expected = BusinessException.class)
+    public void validateCreationPriceTooSmall() {
+
+        lotDto.setPriceStart(new BigDecimal(0));
+
+        lotValidator.validate(lotDto);
+    }
 }

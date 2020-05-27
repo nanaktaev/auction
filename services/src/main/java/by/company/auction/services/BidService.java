@@ -1,11 +1,15 @@
 package by.company.auction.services;
 
 import by.company.auction.common.exceptions.NotYetPopulatedException;
+import by.company.auction.converters.BidConverter;
+import by.company.auction.dto.BidDto;
+import by.company.auction.dto.LotDto;
+import by.company.auction.dto.UserPrincipalAuction;
 import by.company.auction.model.Bid;
-import by.company.auction.model.Lot;
 import by.company.auction.repository.BidRepository;
+import by.company.auction.security.SecurityValidator;
 import by.company.auction.validators.BidValidator;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,13 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static by.company.auction.common.security.AuthenticationConfig.authentication;
-
-@Log4j2
+@Slf4j
 @Service
 @Transactional
-public class BidService extends AbstractService<Bid, BidRepository> {
+public class BidService extends AbstractService<Bid, BidDto, BidRepository, BidConverter> {
 
+    @Autowired
+    private SecurityValidator securityValidator;
     @Autowired
     private LotService lotService;
     @Autowired
@@ -29,62 +33,71 @@ public class BidService extends AbstractService<Bid, BidRepository> {
     @Autowired
     private BidValidator bidValidator;
 
-    protected BidService(BidRepository repository) {
-        super(repository);
+    protected BidService(BidRepository repository, BidConverter converter) {
+        super(repository, converter);
     }
 
-    public Bid findTopBidByLotId(Integer id) {
+    public BidDto findTopBidByLotId(Integer id) {
 
         log.debug("findTopBidByLotId() id = {}", id);
-        return repository.findTopBidByLotId(id);
 
+        Bid topBid = repository.findTopBidByLotId(id);
+
+        if (topBid == null) {
+            return null;
+        }
+
+        return converter.convertToDto(topBid);
     }
 
-    public Bid makeBid(Bid bid) {
+    public BidDto makeBid(BidDto bidDto) {
 
-        log.debug("makeBid() bid = {}", bid);
+        log.debug("makeBid() bidDto = {}", bidDto);
 
-        Lot lot = lotService.findById(bid.getLot().getId());
-        Integer userId = authentication.getUserId();
+        LotDto lotDto = lotService.findById(bidDto.getLot().getId());
 
-        bidValidator.validate(lot, bid, userId);
+        UserPrincipalAuction principal = securityValidator.getUserPrincipal();
 
-        Bid topBid = findTopBidByLotId(lot.getId());
+        Integer userId = principal.getId();
 
-        bid.setTime(LocalDateTime.now());
-        bid.setUser(userService.findById(userId));
-        bid = create(bid);
+        bidValidator.validate(lotDto, bidDto, userId);
 
-        lot.setPrice(bid.getValue());
-        if (lot.isBurning()) {
-            lot.setCloses(LocalDateTime.now().plusMinutes(3));
+        BidDto topBid = findTopBidByLotId(lotDto.getId());
+
+        bidDto.setTime(LocalDateTime.now());
+        bidDto.setUser(userService.findById(userId));
+
+        lotDto.setPrice(bidDto.getValue());
+        if (bidValidator.isLotBurning(lotDto)) {
+            lotDto.setCloses(LocalDateTime.now().plusMinutes(3));
         }
-        lotService.update(lot);
+        lotService.update(lotDto);
 
         if (topBid != null) {
-            messageService.createWarningMessage(topBid.getUser().getId(), bid);
+            messageService.createWarningMessage(topBid.getUser().getId(), bidDto);
         }
-        return bid;
+
+        return create(bidDto);
     }
 
     boolean isUserLeading(Integer lotId, Integer userId) {
 
         log.debug("isUserLeading() lotId = {}, userId = {}", lotId, userId);
+
         return userId.equals(findTopBidByLotId(lotId).getUser().getId());
 
     }
 
-    public List<Bid> findBidsByLotId(Integer lotId) {
+    public List<BidDto> findBidsByLotId(Integer lotId) {
 
         log.debug("findBidsByLotId() lotId = {}", lotId);
 
         List<Bid> bids = repository.findBidsByLotId(lotId);
 
         if (bids.isEmpty()) {
-            throw new NotYetPopulatedException("На этом лоте пока нет ставок.");
+            throw new NotYetPopulatedException("There are no bids on this lot yet.");
         }
 
-        return bids;
+        return converter.convertListToDto(bids);
     }
-
 }

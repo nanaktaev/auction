@@ -1,93 +1,152 @@
 package by.company.auction.services;
 
 import by.company.auction.common.exceptions.NotYetPopulatedException;
+import by.company.auction.converters.LotConverter;
+import by.company.auction.dto.LotDto;
+import by.company.auction.dto.UserPrincipalAuction;
 import by.company.auction.model.Lot;
 import by.company.auction.repository.LotRepository;
+import by.company.auction.security.SecurityValidator;
+import by.company.auction.utils.CustomBeanUtils;
 import by.company.auction.validators.LotValidator;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static by.company.auction.common.security.AuthenticationConfig.authentication;
-
-@Log4j2
+@Slf4j
 @Service
 @Transactional
-public class LotService extends AbstractService<Lot, LotRepository> {
+public class LotService extends AbstractService<Lot, LotDto, LotRepository, LotConverter> {
 
     @Autowired
     private LotValidator lotValidator;
     @Autowired
+    private SecurityValidator securityValidator;
+    @Autowired
     private CompanyService companyService;
 
-    protected LotService(LotRepository repository) {
-        super(repository);
+    protected LotService(LotRepository repository, LotConverter converter) {
+        super(repository, converter);
     }
 
+    public List<LotDto> findAll(Pageable pageable) {
 
-    public List<Lot> findLotsByTownId(Integer townId) {
+        List<Lot> lots = repository.findAll(pageable).getContent();
+
+        if (lots.isEmpty()) {
+            throw new NotYetPopulatedException("There is nothing here yet.");
+        }
+
+        return converter.convertListToDto(lots);
+    }
+
+    public List<LotDto> findLotsByCategoryIdAndTownId(Integer categoryId, Integer townId, Pageable pageable) {
+
+        log.debug("findLotsByCategoryIdAndTownId() categoryId = {}, townId = {}", categoryId, townId);
+
+        List<Lot> lots = repository.findLotsByCategoryIdAndTownId(categoryId, townId, pageable);
+
+        if (lots.isEmpty()) {
+            throw new NotYetPopulatedException("In this town there are no lots from this category yet.");
+        }
+
+        return converter.convertListToDto(lots);
+    }
+
+    public List<LotDto> findLotsByTownId(Integer townId, Pageable pageable) {
 
         log.debug("findLotsByTownId() townId = {}", townId);
 
-        List<Lot> lots = repository.findLotsByTownId(townId);
+        List<Lot> lots = repository.findLotsByTownId(townId, pageable);
 
         if (lots.isEmpty()) {
-            throw new NotYetPopulatedException("В этом городе пока нет лотов.");
+            throw new NotYetPopulatedException("There are no lots in this town yet.");
         }
 
-        return lots;
+        return converter.convertListToDto(lots);
     }
 
-    public List<Lot> findLotsByCategoryId(Integer categoryId) {
+    public List<LotDto> findLotsByCategoryId(Integer categoryId, Pageable pageable) {
 
         log.debug("findLotsByCategoryId() categoryId = {}", categoryId);
 
-        List<Lot> lots = repository.findLotsByCategoryId(categoryId);
+        List<Lot> lots = repository.findLotsByCategoryId(categoryId, pageable);
 
         if (lots.isEmpty()) {
-            throw new NotYetPopulatedException("В этой категории пока нет лотов.");
+            throw new NotYetPopulatedException("There are no lots in this category yet.");
         }
 
-        return lots;
+        return converter.convertListToDto(lots);
     }
 
-    @SuppressWarnings("WeakerAccess")
-    public List<Lot> findLotsByUserId(Integer userId) {
-
-        log.debug("findLotsByUserId() userId = {}", userId);
-        return repository.findLotsByUserId(userId);
-
-    }
-
-    List<Lot> findExpiredLotsByUserId(Integer userId) {
+    List<LotDto> findExpiredLotsByUserId(Integer userId) {
 
         log.debug("findExpiredLotsByUserId() userId = {}", userId);
-        return repository.findExpiredLotsByUserId(userId);
 
+        List<Lot> lots = repository.findExpiredLotsByUserId(userId);
+
+        return converter.convertListToDto(lots);
     }
 
-    public Lot createLot(Lot lot) {
+    @Override
+    public LotDto create(LotDto lotDto) {
 
-        log.debug("createLot() lot = {}", lot);
+        log.debug("createLot() lotDto = {}", lotDto);
 
-        Integer companyId = authentication.getUserCompanyId();
+        UserPrincipalAuction principal = securityValidator.getUserPrincipal();
 
-        lotValidator.validate(lot);
+        lotValidator.validate(lotDto);
 
-        lot.setCompany(companyService.findById(companyId));
-        lot.setOpened(LocalDateTime.now());
-        lot.setPrice(lot.getPriceStart());
+        lotDto.setCompany(companyService.findById(principal.getCompanyId()));
+        lotDto.setOpened(LocalDateTime.now());
+        lotDto.setPrice(lotDto.getPriceStart());
 
-        return create(lot);
+        return super.create(lotDto);
     }
 
     @Override
     public void delete(Integer id) {
-        repository.deleteLotWithBidsById(id);
+
+        log.debug("delete() lotId = {}", id);
+
+        LotDto deletedLot = findById(id);
+
+        securityValidator.validateCompanyAffiliation(deletedLot.getCompany().getId());
+
+        repository.deleteById(id);
     }
 
+    public LotDto editLot(LotDto lotDto) {
+
+        log.debug("editLot() lotDto = {}", lotDto);
+
+        LotDto updatedLot = findById(lotDto.getId());
+
+        securityValidator.validateCompanyAffiliation(updatedLot.getCompany().getId());
+
+        CustomBeanUtils.copyNotNullProperties(lotDto, updatedLot);
+
+        lotValidator.validateUpdate(updatedLot);
+
+        return update(updatedLot);
+    }
+
+    @Override
+    public LotDto findById(Integer id) {
+
+        LotDto lotDto = super.findById(id);
+
+        if (lotDto.getViews() != null)
+            lotDto.setViews(lotDto.getViews() + 1);
+        else {
+            lotDto.setViews(0);
+        }
+
+        return update(lotDto);
+    }
 }

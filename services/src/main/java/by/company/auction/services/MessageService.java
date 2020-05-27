@@ -1,12 +1,15 @@
 package by.company.auction.services;
 
 import by.company.auction.common.exceptions.NotYetPopulatedException;
-import by.company.auction.model.Bid;
-import by.company.auction.model.Lot;
+import by.company.auction.converters.MessageConverter;
+import by.company.auction.dto.BidDto;
+import by.company.auction.dto.LotDto;
+import by.company.auction.dto.MessageDto;
 import by.company.auction.model.Message;
 import by.company.auction.model.MessageType;
 import by.company.auction.repository.MessageRepository;
-import lombok.extern.log4j.Log4j2;
+import by.company.auction.security.SecurityValidator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +18,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Log4j2
+@Slf4j
 @Service
 @Transactional
-public class MessageService extends AbstractService<Message, MessageRepository> {
+public class MessageService extends AbstractService<Message, MessageDto, MessageRepository, MessageConverter> {
 
+    @Autowired
+    private SecurityValidator securityValidator;
     @Autowired
     private BidService bidService;
     @Autowired
@@ -27,73 +32,76 @@ public class MessageService extends AbstractService<Message, MessageRepository> 
     @Autowired
     private UserService userService;
 
-    protected MessageService(MessageRepository repository) {
-        super(repository);
+    protected MessageService(MessageRepository repository, MessageConverter converter) {
+        super(repository, converter);
     }
 
-
-    @SuppressWarnings("WeakerAccess")
-    public List<Message> findOutcomeMessagesByUserId(Integer userId) {
+    List<MessageDto> findOutcomeMessagesByUserId(Integer userId) {
 
         log.debug("findOutcomeMessagesByUserId() userId = {}", userId);
-        return repository.findOutcomeMessagesByUserId(userId);
 
+        List<Message> messages = repository.findOutcomeMessagesByUserId(userId);
+
+        return converter.convertListToDto(messages);
     }
 
-    public List<Message> findMessagesByUserId(Integer userId) {
+    public List<MessageDto> findMessagesByUserId(Integer userId) {
 
         log.debug("findMessagesByUserId() userId = {}", userId);
+
+        securityValidator.validateUserAccountOwnership(userId);
+
+        prepareUserMessages(userId);
 
         List<Message> messages = repository.findMessagesByUserId(userId);
 
         if (messages.isEmpty()) {
-            throw new NotYetPopulatedException("У вас пока нет сообщений.");
+            throw new NotYetPopulatedException("You don't have any messages yet.");
         }
 
-        return messages;
+        return converter.convertListToDto(messages);
     }
 
-    @SuppressWarnings("WeakerAccess")
-    public void createOutcomeMessage(LocalDateTime time, Integer userId, Integer lotId, boolean userLeading) {
+    void createOutcomeMessage(LocalDateTime time, Integer userId, Integer lotId, boolean userLeading) {
 
         log.debug("createOutcomeMessage() time = {}, userId = {}, lotId = {}, userLeading = {}",
                 time, userId, lotId, userLeading);
 
-        Message message = new Message();
-        message.setTime(time);
-        message.setType(MessageType.OUTCOME);
-        message.setUser(userService.findById(userId));
-        message.setLot(lotService.findById(lotId));
+        MessageDto messageDto = new MessageDto();
+        messageDto.setTime(time);
+        messageDto.setType(MessageType.OUTCOME);
+        messageDto.setUser(userService.findById(userId));
+        messageDto.setLot(lotService.findById(lotId));
 
         if (userLeading) {
-            message.setText("Вы выиграли торги по лоту №" + lotId + "!");
+            messageDto.setText("You've won bidding on a lot №" + lotId + "!");
         } else {
-            message.setText("Вы проиграли торги по лоту №" + lotId + ".");
+            messageDto.setText("You've lost bidding on a lot №" + lotId + ".");
         }
 
-        create(message);
+        create(messageDto);
     }
 
-    void createWarningMessage(Integer userId, Bid bid) {
+    void createWarningMessage(Integer userId, BidDto bidDto) {
 
-        log.debug("createWarningMessage() userId = {}, bid = {}", userId, bid);
+        log.debug("createWarningMessage() userId = {}, bidDto = {}", userId, bidDto);
 
-        Message message = new Message();
-        message.setTime(bid.getTime());
-        message.setType(MessageType.WARNING);
-        message.setUser(userService.findById(userId));
-        message.setLot(bid.getLot());
-        message.setText("Ваша ставка по лоту №" + bid.getLot().getId() + " была перебита!");
+        MessageDto messageDto = new MessageDto();
+        messageDto.setTime(bidDto.getTime());
+        messageDto.setType(MessageType.WARNING);
+        messageDto.setUser(userService.findById(userId));
+        messageDto.setLot(bidDto.getLot());
+        messageDto.setText("Your bid on a lot №" + bidDto.getLot().getId() + " has been outbid!");
 
-        create(message);
+        create(messageDto);
     }
 
-    public void prepareUserMessages(Integer userId) {
+    private void prepareUserMessages(Integer userId) {
 
         log.debug("prepareUserMessages() userId = {}", userId);
 
-        List<Message> userOutcomeMessages = findOutcomeMessagesByUserId(userId);
-        List<Lot> expiredUserLots = lotService.findExpiredLotsByUserId(userId);
+        List<MessageDto> userOutcomeMessages = findOutcomeMessagesByUserId(userId);
+        List<LotDto> expiredUserLots = lotService.findExpiredLotsByUserId(userId);
         List<Integer> checkedLotIds = new ArrayList<>();
 
         userOutcomeMessages.forEach(message -> checkedLotIds.add(message.getLot().getId()));
@@ -103,7 +111,7 @@ public class MessageService extends AbstractService<Message, MessageRepository> 
         }
 
         if (!expiredUserLots.isEmpty()) {
-            for (Lot lot : expiredUserLots) {
+            for (LotDto lot : expiredUserLots) {
                 if (bidService.isUserLeading(lot.getId(), userId)) {
                     createOutcomeMessage(lot.getCloses(), userId, lot.getId(), true);
                 } else {
@@ -112,5 +120,4 @@ public class MessageService extends AbstractService<Message, MessageRepository> 
             }
         }
     }
-
 }
